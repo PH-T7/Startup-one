@@ -1,11 +1,22 @@
-<script setup></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+    <main>
+        <PostItem />
+
+        <PostItem />
+        <PostItem />
+    </main>
 </template>
 
-<style scoped></style>
+<script setup>
+// Para "usar" o componente, precisamos importá-lo
+import PostItem from "./components/PostItem.vue";
+</script>
+
+<style>
+/* Estilos globais (para o site inteiro) */
+body {
+    background-color: #1a1a1a; /* Fundo preto/cinza escuro do seu wireframe */
+    margin: 0;
+    padding: 0;
+}
+</style>
