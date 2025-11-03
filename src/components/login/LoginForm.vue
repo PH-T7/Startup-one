@@ -7,11 +7,13 @@
         alt="Background 1"
         data-artist="Meymey🌸"
         data-creator="Criador 1"
+        data-avatar="https://pbs.twimg.com/profile_images/1980416824823988224/qOLpJw26_400x400.jpg"
       >
      <img src="https://pbs.twimg.com/media/G1TZkbiXgAEorle?format=jpg&name=4096x4096" 
      alt="Background 2"
      data-artist="Quimera_Ilustra"
      data-creator="@RhuIlustra"
+     data-avatar="https://pbs.twimg.com/profile_images/1981083351768285184/0tjyIgJE_400x400.jpg"
      >
       <!-- Adicione mais imagens com data-artist e data-creator conforme necessário -->
       <!-- Exemplo:
@@ -28,28 +30,37 @@
   </div>
   -->
 
-  <!-- Main Container -->
+  <!-- Tela de Login -->
+
   <div class="container">
     <div class="login-card">
       <div class="card-logo"></div>
+      
+      
+      <transition name="fade-slide" mode="out-in">
+      <div v-if="!isSignup" key="login">
       <div class="tagline">Onde as cores contam a história que as palavras não alcançam.</div>
       <h1 class="login-title">Acesse com sua conta na Nexo Art.</h1>
       <label for="email">Email:</label>
-      <input type="email" id="email" class="textoRegistro" placeholder="Digite o seu E-mail">
+      <input type="email" v-model="email" id="email" class="textoRegistro" placeholder="Digite o seu E-mail">
       <label for="password">Senha:</label>
-      <input type="password" class="textoRegistro" placeholder="Digite a sua senha">
-      <button class="btn-primary" @click="handleCreateAccount">Crie uma conta</button>
-      <button class="btn-secondary" @click="handleLogin" type="submit">Entrar</button>
+      <input type="password" v-model="password" class="textoRegistro" placeholder="Digite a sua senha">
+      <div v-if="errorMessage" class="error-message">
+      <svg class="error-icon" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+      </svg>
+      <span class="error-text">{{ errorMessage }}</span>
+      </div>
+      <button class="btn-secondary" @click="handleLogin" :disabled="isLoading" type="button">
+      {{ isLoading ? "Entrando..." : "Entrar" }}
+      </button>
+      <button class="btn-primary" @click="toggleMode">Crie uma conta</button>
       
+      
+
       <div class="divider">Entrar com uma conta existente</div>
-      
       <div class="social-login">
-        <!-- Apple -->
-        <button class="social-btn" @click="handleSocialLogin('apple')" aria-label="Login with Apple">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-          </svg>
-        </button>
+      
         
         <!-- Google -->
         <button class="social-btn" @click="handleSocialLogin('google')" aria-label="Login with Google">
@@ -76,35 +87,105 @@
         </button>
       </div>
     </div>
-    </div>
-  <!-- Artist Badge -->
+    
+
+
+    <!--Tela de cadastro-->
+    <div v-else key="signup">
+        <h1 class="login-title">Crie sua conta na Nexo Art.</h1>
+
+        <label for="name">Nome completo:</label>
+        <input type="text" v-model="name" class="textoRegistro" placeholder="Seu nome">
+
+        <label for="email">Email:</label>
+        <input type="email" v-model="email" class="textoRegistro" placeholder="Seu e-mail">
+
+        <label for="password">Senha:</label>
+        <input type="password" v-model="password" class="textoRegistro" placeholder="Crie uma senha">
+
+        <label for="confirmPassword">Confirme a senha:</label>
+        <input type="password" v-model="confirmPassword" class="textoRegistro" placeholder="Repita a senha">
+
+        <div v-if="signupError" class="error-message">
+          <svg class="error-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <span class="error-text">{{ signupError }}</span>
+        </div>
+
+        <button class="btn-primary" @click="handleSignup" :disabled="isLoading">
+          {{ isLoading ? "Criando..." : "Criar conta" }}
+        </button>
+        <button class="btn-secondary" @click="toggleMode">
+          Já tem conta? Entrar
+        </button>
+      </div>
+    </transition>
+  </div>
+</div> 
+  <!-- Modelo de perfil do usuario (para aparecer os creditos do artista)-->
   <div class="artist-badge">
     <div class="artist-avatar"></div>
     <div class="artist-info">
-      <span class="artist-name">八重歯ちゃん</span><br>
-      <span class="artist-creator">ほぐちゃろさんの作品</span>
+      <span class="artist-name"></span>
+      <span class="artist-creator"></span>
     </div>
   </div>
 </template>
 
 
 <script setup>
- 
 import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+
+
 
 // Referências reativas
 const email = ref("");
+const password = ref("");
+const errorMessage = ref("");
+const router = useRouter();
+const isLoading = ref(false);
 
-const handleCreateAccount = () => {
-  console.log("Create account clicked");
-  alert("Redirecionando para criação de conta...");
+
+
+const toggleMode = () => {
+  isSignup.value = !isSignup.value;
+  errorMessage.value = "";
+  signupError.value = "";
+  email.value = password.value = confirmPassword.value = name.value = "";
+  
 };
 
-const handleLogin = () => {
-  console.log("Login clicked");
-  alert("Redirecionando para login...");
-};
 
+
+
+const handleLogin = async () => {
+  errorMessage.value = ""; 
+
+  // --- 1. Validação Simples ---
+  if (!email.value || !password.value) {
+    errorMessage.value = "Por favor, preencha o email e a senha.";
+    return; // Para a execução
+  }
+    isLoading.value = true; // Desabilita botão
+
+  try {
+    // Simulação de login (substitua por API real depois)
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    if (email.value === "24850@facens.br" && password.value === "123") {
+      console.log("Login bem-sucedido!");
+      router.push('/Home');
+    } else {
+      errorMessage.value = "Email ou senha inválidos.";
+    }
+  } catch (err) {
+    errorMessage.value = "Erro ao fazer login. Tente novamente.";
+  } finally {
+    isLoading.value = false;
+  }
+};
 const handleSocialLogin = (provider) => {
   console.log(`Social login with ${provider}`);
   alert(`Login com ${provider}...`);
@@ -127,34 +208,38 @@ onMounted(() => {
 
   const artistName = document.querySelector(".artist-name");
   const artistCreator = document.querySelector(".artist-creator");
+  const avatarEl = document.querySelector(".artist-avatar");
   let index = 0;
 
-  console.log("Total de imagens:", totalImages);
-  console.log("Imagens encontradas:", images);
-
-  // Define a largura total do carrossel
-  carousel.style.width = `${100 * totalImages}vw`; // Usa vw para garantir largura proporcional
-  carousel.style.display = "flex"; // Garante que o flex seja aplicado
+  // Configuração do carrossel
+  carousel.style.width = `${100 * totalImages}vw`;
+  carousel.style.display = "flex";
 
   const updateCarousel = () => {
-    console.log("Atualizando carrossel, índice:", index);
-    if (index >= totalImages) index = 0;
-
-    //  ↓↓↓ ESTA É A LINHA CORRIGIDA ↓↓↓
+    // Atualiza posição do carrossel
     const translateValue = -(index * (100 / totalImages));
-    //  ↑↑↑ ESTA É A LINHA CORRIGIDA ↑↑↑
-
     carousel.style.transform = `translateX(${translateValue}%)`;
+
     const currentImage = images[index];
+
     if (currentImage) {
-      artistName.textContent =
-        currentImage.dataset.artist || "Artista Desconhecido";
+      // Atualiza nome do artista
+      artistName.textContent = currentImage.dataset.artist || "Artista Desconhecido";
+
+      // Atualiza criador
       artistCreator.textContent = `${
         currentImage.dataset.creator || "Criador Desconhecido"
-      }さんの作品`;
-      console.log("Imagem atual:", currentImage.src);
-    } else {
-      console.error("Imagem atual não encontrada no índice:", index);
+      }`;
+
+      // ATUALIZA AVATAR (agora dentro da função!)
+      const avatarUrl = currentImage.dataset.avatar;
+      if (avatarUrl) {
+        avatarEl.style.backgroundImage = `url(${avatarUrl})`;
+        avatarEl.style.backgroundSize = "cover";
+        avatarEl.style.backgroundPosition = "center";
+      } else {
+        avatarEl.style.backgroundImage = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+      }
     }
   };
 
@@ -165,15 +250,19 @@ onMounted(() => {
 
   // Inicia com a primeira imagem
   updateCarousel();
-  // Inicia o intervalo
+
+  // Troca a cada 5 segundos
   const intervalId = setInterval(nextSlide, 5000);
-  console.log("Intervalo iniciado, ID:", intervalId);
+  console.log("Carrossel iniciado com sucesso! ID:", intervalId);
 });
-    </script>
+
+const isSignup = ref(false); // false = login, true = cadastro
+
+</script>
 
 
 
-    <style scoped>
+<style scoped>
 * {
   margin: 0;
   padding: 0;
@@ -474,10 +563,16 @@ border-color: #ffffff;
 }
 
 .artist-avatar {
-  width: 32px;
-  height: 32px;
+  width: 40px;/* Aumentei um pouco para melhor visualização */
+  height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  transition: all 0.3s ease; /* Suave ao trocar */
 }
 
 /* Responsive */
@@ -493,4 +588,66 @@ border-color: #ffffff;
     padding: 8px 12px;
   }
 }
-    </style>
+
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  color: #c62828;
+  font-family: 'Lora', serif;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1.5px solid #ef9a9a;
+  margin: 18px 0;
+  box-shadow: 0 4px 12px rgba(230, 74, 74, 0.15);
+  animation: fadeIn 0.4s ease-out;
+  backdrop-filter: blur(4px);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.error-message:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(230, 74, 74, 0.2);
+}
+
+.error-icon {
+  width: 22px;
+  height: 22px;
+  color: #e53935;
+  flex-shrink: 0;
+}
+
+.error-text {
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .error-message {
+    font-size: 14px;
+    padding: 12px 16px;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .error-icon { width: 20px; height: 20px; }
+}
+
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.4s ease;
+}
+.fade-slide-enter-from { opacity: 0; transform: translateX(30px); }
+.fade-slide-leave-to   { opacity: 0; transform: translateX(-30px); }
+
+</style>
