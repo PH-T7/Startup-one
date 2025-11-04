@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "../pages/Home.vue"; // Importa sua Home
 import Login from "../pages/Login.vue"; // Importa o Login do seu amigo
-
+import Profile from "../pages/Profile.vue";
+import PostDetail from "../pages/PostDetail.vue";
 // 1. Define as rotas (URLs)
 const routes = [
   {
@@ -14,7 +15,18 @@ const routes = [
     name: "Login",
     component: Login, // Carrega o componente Login.vue
   },
-  // (Vocês vão adicionar /perfil, /post/:id, etc. aqui no futuro)
+  {
+    // O ":username" é uma prop dinâmica.
+    // Isso vai pegar a URL (ex: /perfil/ArtistaManga)
+    path: "/perfil/:username",
+    name: "Profile",
+    component: Profile,
+  },
+  {
+    path: "/post/:id", // Ex: /post/123
+    name: "PostDetail",
+    component: PostDetail,
+  },
 ];
 
 // 2. Cria a instância do roteador
