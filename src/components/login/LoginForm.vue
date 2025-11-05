@@ -6,7 +6,7 @@
         src="https://pbs.twimg.com/media/G39QCZWW8AAH66k?format=jpg&name=large"
         alt="Background 1"
         data-artist="Meymey🌸"
-        data-creator="Criador 1"
+        data-creator="@Meymey2"
         data-avatar="https://pbs.twimg.com/profile_images/1980416824823988224/qOLpJw26_400x400.jpg"
       >
      <img src="https://pbs.twimg.com/media/G1TZkbiXgAEorle?format=jpg&name=4096x4096" 
@@ -14,6 +14,12 @@
      data-artist="Quimera_Ilustra"
      data-creator="@RhuIlustra"
      data-avatar="https://pbs.twimg.com/profile_images/1981083351768285184/0tjyIgJE_400x400.jpg"
+     >
+      <img src="https://preview.redd.it/fan-art-i-did-cubchoo-goes-weeeee-v0-0zpm5wppb5de1.jpeg?width=1080&crop=smart&auto=webp&s=2c98f0b7cf8520ddb212175515291c5a50ac6771" 
+     alt="Background 3"
+     data-artist="Afnm_sm"
+     data-creator="@Sm_afn"
+     data-avatar="https://i.redd.it/snoovatar/avatars/1e8df099-d8d0-46a1-b76f-34032e95fd4d.png"
      >
       <!-- Adicione mais imagens com data-artist e data-creator conforme necessário -->
       <!-- Exemplo:
@@ -51,7 +57,7 @@
       </svg>
       <span class="error-text">{{ errorMessage }}</span>
       </div>
-      <button class="btn-secondary" @click="handleLogin" :disabled="isLoading" type="button">
+      <button class="btn-primary login-btn" @click="handleLogin" :disabled="isLoading" type="button">
       {{ isLoading ? "Entrando..." : "Entrar" }}
       </button>
       <button class="btn-primary" @click="toggleMode">Crie uma conta</button>
@@ -94,31 +100,72 @@
     <div v-else key="signup">
         <h1 class="login-title">Crie sua conta na Nexo Art.</h1>
 
-        <label for="name">Nome completo:</label>
-        <input type="text" v-model="name" class="textoRegistro" placeholder="Seu nome">
+        <div class="field-wrapper">
+  <label for="name">Nome completo:</label>
+  <input 
+    type="text" 
+    v-model="name" 
+    class="textoRegistro" 
+    placeholder="Seu nome"
+    :class="{ 'error': errors.name }"
+  >
+  <span v-if="errors.name" class="fb-error">{{ errors.name }}</span>
+</div>
 
-        <label for="email">Email:</label>
-        <input type="email" v-model="email" class="textoRegistro" placeholder="Seu e-mail">
+<!-- EMAIL -->
+<div class="field-wrapper">
+  <label for="email">Email:</label>
+  <input 
+    type="email" 
+    v-model="email" 
+    class="textoRegistro" 
+    placeholder="Seu e-mail"
+    :class="{ 'error': errors.email }"
+  >
+  <span v-if="errors.email" class="fb-error">{{ errors.email }}</span>
+</div>
 
-        <label for="password">Senha:</label>
-        <input type="password" v-model="password" class="textoRegistro" placeholder="Crie uma senha">
+<!-- SENHA -->
+<div class="field-wrapper">
+  <label for="password">Senha:</label>
+  <input 
+    type="password" 
+    v-model="password" 
+    class="textoRegistro" 
+    placeholder="Crie uma senha"
+    :class="{ 'error': errors.password }"
+  >
+  <span v-if="errors.password" class="fb-error">{{ errors.password }}</span>
+</div>
 
-        <label for="confirmPassword">Confirme a senha:</label>
-        <input type="password" v-model="confirmPassword" class="textoRegistro" placeholder="Repita a senha">
+<!-- CONFIRMAR SENHA -->
+<div class="field-wrapper">
+  <label for="confirmPassword">Confirme a senha:</label>
+  <input 
+    type="password" 
+    v-model="confirmPassword" 
+    class="textoRegistro" 
+    placeholder="Repita a senha"
+    :class="{ 'error': errors.confirmPassword }"
+  >
+  <span v-if="errors.confirmPassword" class="fb-error">{{ errors.confirmPassword }}</span>
+</div><br></br>
 
-        <div v-if="signupError" class="error-message">
-          <svg class="error-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </svg>
-          <span class="error-text">{{ signupError }}</span>
-        </div>
+<button 
+  class="btn-primary" 
+  @click="handleSignup" 
+  :disabled="isLoading"
+>
+  {{ isLoading ? "Criando..." : "Criar conta" }}
+</button>
+<button 
+  class="btn-secondary" 
+  @click="isSignup = false; errors = {}"
+  style="margin-top: 16px; width: 100%;"
+>
+  Já tem uma conta? 
+</button>
 
-        <button class="btn-primary" @click="handleSignup" :disabled="isLoading">
-          {{ isLoading ? "Criando..." : "Criar conta" }}
-        </button>
-        <button class="btn-secondary" @click="toggleMode">
-          Já tem conta? Entrar
-        </button>
       </div>
     </transition>
   </div>
@@ -135,7 +182,7 @@
 
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
 
@@ -146,7 +193,16 @@ const password = ref("");
 const errorMessage = ref("");
 const router = useRouter();
 const isLoading = ref(false);
+const name = ref("");
+const confirmPassword = ref("");
+const signupError = ref("");
+const isSignup = ref(false);
+const errors = ref({})
 
+//Verificar se o cadastro está certo
+
+
+const canSubmit = computed(() => fieldErrors.value.length === 0 && !isLoading.value);
 
 
 const toggleMode = () => {
@@ -186,6 +242,38 @@ const handleLogin = async () => {
     isLoading.value = false;
   }
 };
+
+const handleSignup = async () => {
+  errors.value = {} // limpa todos os erros
+
+  let hasError = false
+
+  if (!name.value.trim()) {
+    errors.value.name = "Digite seu nome completo"
+    hasError = true
+  }
+  if (!/^\S+@\S+\.\S+$/.test(email.value)) {
+    errors.value.email = "Email inválido"
+    hasError = true
+  }
+  if (password.value.length < 6) {
+    errors.value.password = "Mínimo 6 caracteres"
+    hasError = true
+  }
+  if (password.value !== confirmPassword.value) {
+    errors.value.confirmPassword = "Senhas não coincidem"
+    hasError = true
+  }
+
+  if (hasError) return // para aqui se tiver erro
+
+  // ==== TUDO CERTO → CADASTRA ====
+  isLoading.value = true
+  await new Promise(r => setTimeout(r, 1000))
+  alert("Cadastro criado com sucesso! 🎉")
+  router.push("/Home")
+  isLoading.value = false
+}
 const handleSocialLogin = (provider) => {
   console.log(`Social login with ${provider}`);
   alert(`Login com ${provider}...`);
@@ -256,7 +344,7 @@ onMounted(() => {
   console.log("Carrossel iniciado com sucesso! ID:", intervalId);
 });
 
-const isSignup = ref(false); // false = login, true = cadastro
+
 
 </script>
 
@@ -452,12 +540,15 @@ border-color: #ffffff;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
   margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 150, 250, 0.15);
 }
 
 .btn-primary:hover {
-  background: #0086E0;
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 150, 250, 0.25);
 }
 
 .btn-secondary {
@@ -650,4 +741,53 @@ border-color: #ffffff;
 .fade-slide-enter-from { opacity: 0; transform: translateX(30px); }
 .fade-slide-leave-to   { opacity: 0; transform: translateX(-30px); }
 
+
+.btn-primary.login-btn {
+  background: #28a745 !important;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.btn-primary.login-btn:hover {
+  background: #218838 !important;
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3)
+}
+
+
+.error-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+.error-message .error-text {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+
+.field-wrapper {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.textoRegistro.error {
+  border: 2px solid #e53935 !important;
+  box-shadow: 0 0 8px rgba(229, 57, 53, 0.3) !important;
+}
+
+.fb-error {
+  position: absolute;
+  left: 0;
+  bottom: -12px;
+  font-size: 13px;
+  color: #e53935;
+  font-weight: 500;
+  font-family: 'Segoe UI', sans-serif;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>
