@@ -13,34 +13,10 @@
         <nav class="tags-nav">
             <h3>Tags em alta</h3>
             <ul>
-                <li>
-                    <router-link to="/tags/tag1"
-                        ><strong>tag 1</strong>
-                        <span>130 posts</span></router-link
-                    >
-                </li>
-                <li>
-                    <router-link to="/tags/tag2"
-                        ><strong>tag 2</strong>
-                        <span>125 posts</span></router-link
-                    >
-                </li>
-                <li>
-                    <router-link to="/tags/tag3"
-                        ><strong>tag 3</strong>
-                        <span>120 posts</span></router-link
-                    >
-                </li>
-                <li>
-                    <router-link to="/tags/tag4"
-                        ><strong>tag 4</strong>
-                        <span>115 posts</span></router-link
-                    >
-                </li>
-                <li>
-                    <router-link to="/tags/tag5"
-                        ><strong>tag 5</strong>
-                        <span>110 posts</span></router-link
+                <li v-for="tag in tags" :key="tag.name">
+                    <router-link :to="`/tags/${tag.name}`"
+                        ><strong>#{{ tag.name }}</strong>
+                        <span>{{ tag.count }} posts</span></router-link
                     >
                 </li>
             </ul>
@@ -51,6 +27,7 @@
 <script setup>
 defineProps({
     user: Object, // Vamos receber o objeto 'fakeMe' aqui
+    tags: Array,
 });
 </script>
 

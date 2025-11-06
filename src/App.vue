@@ -2,7 +2,7 @@
     <div class="app-container">
         <header class="col-nav">
             <Navbar />
-            <SidebarTags :user="fakeMe" />
+            <SidebarTags :user="fakeMe" :tags="trendingTags" />
         </header>
 
         <main class="col-feed">
@@ -16,6 +16,7 @@
 </template>
 
 <script setup>
+import { ref, computed } from "vue";
 // 1. Importa os componentes da "moldura"
 import Navbar from "./components/layout/Navbar.vue";
 import SidebarTags from "./components/layout/SidebarTags.vue";
@@ -27,6 +28,53 @@ import { currentUser } from "./service/store.js";
 // 3. Renomeamos para 'fakeMe' para o template funcionar
 //    (O template estava usando :user="fakeMe")
 const fakeMe = currentUser;
+
+const posts = ref([
+    {
+        id: 1,
+        user: "Zumi",
+        text: "a Luz! ✨ #TheOwlHouse",
+        avatarUrl:
+            "https://64.media.tumblr.com/837a686c6e497180890c1cad980b8326/c59fb7be68d45748-86/s1280x1920/cae307c29c98e40dc08be601d5cbb38051c4111e.png",
+        imageUrl:
+            "https://64.media.tumblr.com/5fde43ff17805e35207f293a2a9a9490/fe1fd5995f06f3b8-9f/s1280x1920/54b47d6e2919a29bb5d42e3fd36ec52feaeadd02.png",
+        commissionStatus: "Aberto",
+    },
+    {
+        id: 2,
+        user: "sanobdd",
+        text: "Um sketch rápido do Aomine. 🏀 #KurokoNoBasket",
+        avatarUrl:
+            "https://pbs.twimg.com/profile_images/1979504749406806016/5jfrLI0__400x400.jpg",
+        imageUrl: "https://pbs.twimg.com/media/E0laSkHWQAgvpPL.jpg",
+        commissionStatus: "Fechado",
+    },
+    {
+        id: 3,
+        user: "vialentino",
+        text: "Estudando um pouco de iluminação em retratos.",
+        avatarUrl:
+            "https://i.pinimg.com/736x/4d/f2/20/4df220f7fa1a115dfc8fe1dc42471865.jpg",
+        imageUrl:
+            "https://scontent.fsod2-1.fna.fbcdn.net/v/t39.30808-6/465578040_8912182182166437_3177728228340639453_n.png?_nc_cat=103&ccb=1-7&_nc_sid=127cfc&_nc_ohc=X41WuZ6xThYQ7kNvwHScqB7&_nc_oc=AdnLIPhiZ12ATeLK-CnaW1_WWYoqLoMyxmRvthrVC1YZPMw1bUNRIkHBU9XEedYJoXkMb2GmTJ_wBXq077xD-yww&_nc_zt=23&_nc_ht=scontent.fsod2-1.fna&_nc_gid=Cw5STJ65Ib2ymMGZ93DToA&oh=00_AfiaTG6HmoOMfrQEyH0P8hZQ5brHQ8OGvCo7aZU3xIahRg&oe=6912A838",
+        commissionStatus: "Lista de Espera",
+    },
+]);
+
+const trendingTags = computed(() => {
+    const tagCounts = {};
+    posts.value.forEach((post) => {
+        const words = post.text.split(" ");
+        words.forEach((word) => {
+            if (word.startsWith("#")) {
+                const tag = word.substring(1);
+                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            }
+        });
+    });
+
+    return Object.entries(tagCounts).map(([name, count]) => ({ name, count }));
+});
 </script>
 
 <style>

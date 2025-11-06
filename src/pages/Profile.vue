@@ -53,40 +53,85 @@
 </template>
 
 <script setup>
-// (O script setup dele fica igual ao que fizemos antes,
-// com o 'fakeUserDatabase', 'currentUser', 'portfolioPosts', etc.)
 import { ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import PostItem from "../components/post/PostItem.vue";
 import PostCard from "../components/post/PostCard.vue";
 import ProfileHeader from "../components/profile/ProfileHeader.vue";
 
-// --- Simulação do Banco de Dados ---
+// --- 1. SIMULAÇÃO DO BANCO DE DADOS DE USUÁRIOS (ATUALIZADO!) ---
 const fakeUserDatabase = {
+    // Usuários que já tínhamos
     ArtistaManga: {
-        avatar: "https://i.pravatar.cc/150?img=11",
+        avatar: "https://i.pravatar.cc/150?img=11", // (Você pode trocar este)
         bio: "Artista digital e fã de mangá.",
         commissionStatus: "Aberto",
     },
-    SketchMaster: {
-        avatar: "https://i.pravatar.cc/150?img=12",
-        bio: "Especialista em sketch e anatomia. ✍️",
+
+    // --- NOVOS USUÁRIOS (Sincronizados com o seu Home.vue) ---
+    Zumi: {
+        avatar: "https://64.media.tumblr.com/837a686c6e497180890c1cad980b8326/c59fb7be68d45748-86/s1280x1920/cae307c29c98e40dc08be601d5cbb38051c4111e.png",
+        bio: "Só uma garota que ama desenhar",
+        commissionStatus: "Aberto",
+    },
+    sanobdd: {
+        avatar: "https://pbs.twimg.com/profile_images/1979504749406806016/5jfrLI0__400x400.jpg",
+        bio: "Fanart de animes de esporte é minha especialidade.",
         commissionStatus: "Fechado",
     },
-    Colorida: {
-        avatar: "https://i.pravatar.cc/150?img=13",
-        bio: "Amante de pintura digital e cores vibrantes.",
+    vialentino: {
+        avatar: "https://i.pinimg.com/736x/4d/f2/20/4df220f7fa1a115dfc8fe1dc42471865.jpg",
+        bio: "Artista de retratos e iluminação.",
         commissionStatus: "Lista de Espera",
+    },
+    ArtistaDestaque: {
+        avatar: "https://pbs.twimg.com/profile_images/1785368383201890304/mXGKNvu-_400x400.jpg",
+        bio: "Artista em destaque da semana.",
+        commissionStatus: "Aberto",
     },
 };
 // --- Fim da Simulação ---
+
+const posts = ref([
+    {
+        id: 1,
+        user: "Zumi",
+        text: "a Luz! ✨ #TheOwlHouse",
+        avatarUrl:
+            "https://64.media.tumblr.com/837a686c6e497180890c1cad980b8326/c59fb7be68d45748-86/s1280x1920/cae307c29c98e40dc08be601d5cbb38051c4111e.png",
+        imageUrl:
+            "https://64.media.tumblr.com/5fde43ff17805e35207f293a2a9a9490/fe1fd5995f06f3b8-9f/s1280x1920/54b47d6e2919a29bb5d42e3fd36ec52feaeadd02.png",
+        commissionStatus: "Aberto",
+    },
+    {
+        id: 2,
+        user: "sanobdd",
+        text: "Um sketch rápido do Aomine. 🏀 #KurokoNoBasket",
+        avatarUrl:
+            "https://pbs.twimg.com/profile_images/1979504749406806016/5jfrLI0__400x400.jpg",
+        imageUrl: "https://pbs.twimg.com/media/E0laSkHWQAgvpPL.jpg",
+        commissionStatus: "Fechado",
+    },
+    {
+        id: 3,
+        user: "vialentino",
+        text: "Estudando um pouco de iluminação em retratos.",
+        avatarUrl:
+            "https://i.pinimg.com/736x/4d/f2/20/4df220f7fa1a115dfc8fe1dc42471865.jpg",
+        imageUrl:
+            "https://scontent.fsod2-1.fna.fbcdn.net/v/t39.30808-6/465578040_8912182182166437_3177728228340639453_n.png?_nc_cat=103&ccb=1-7&_nc_sid=127cfc&_nc_ohc=X41WuZ6xThYQ7kNvwHScqB7&_nc_oc=AdnLIPhiZ12ATeLK-CnaW1_WWYoqLoMyxmRvthrVC1YZPMw1bUNRIkHBU9XEedYJoXkMb2GmTJ_wBXq077xD-yww&_nc_zt=23&_nc_ht=scontent.fsod2-1.fna&_nc_gid=Cw5STJ65Ib2ymMGZ93DToA&oh=00_AfiaTG6HmoOMfrQEyH0P8hZQ5brHQ8OGvCo7aZU3xIahRg&oe=6912A838",
+        commissionStatus: "Lista de Espera",
+    },
+]);
 
 const route = useRoute();
 const activeTab = ref("portfolio");
 
 const username = computed(() => route.params.username);
 
+// 2. BUSCA O USUÁRIO CORRETO
 const currentUser = computed(() => {
+    // Agora ele vai achar "Zumi" e retornar os dados corretos
     return (
         fakeUserDatabase[username.value] || {
             avatar: "https://i.pravatar.cc/150?img=1",
@@ -96,52 +141,14 @@ const currentUser = computed(() => {
     );
 });
 
-// --- Dados Falsos ---
-const portfolioPosts = [
-    {
-        id: 1,
-        user: username.value,
-        avatarUrl: currentUser.value.avatar,
-        imageUrl: `https://picsum.photos/600/800?random=${username.value}1`,
-    },
-    {
-        id: 2,
-        user: username.value,
-        avatarUrl: currentUser.value.avatar,
-        imageUrl: `https://picsum.photos/600/600?random=${username.value}2`,
-    },
-    {
-        id: 3,
-        user: username.value,
-        avatarUrl: currentUser.value.avatar,
-        imageUrl: `https://picsum.photos/600/700?random=${username.value}3`,
-    },
-    {
-        id: 4,
-        user: username.value,
-        avatarUrl: currentUser.value.avatar,
-        imageUrl: `https://picsum.photos/600/800?random=${username.value}4`,
-    },
-];
-const feedPosts = [
-    {
-        id: 1,
-        user: username.value,
-        text: "Meu post mais recente!",
-        avatarUrl: currentUser.value.avatar,
-        imageUrl: `https://picsum.photos/600/700?random=${username.value}3`,
-        postId: 1,
-    },
-    {
-        id: 2,
-        user: username.value,
-        text: "WIP de hoje.",
-        avatarUrl: currentUser.value.avatar,
-        imageUrl: `https://picsum.photos/600/600?random=${username.value}2`,
-        postId: 2,
-    },
-];
-// --- Fim dos Dados Falsos ---
+// --- Dados Falsos (Agora dinâmicos!) ---
+const portfolioPosts = computed(() => {
+    return posts.value.filter((p) => p.user === username.value);
+});
+
+const feedPosts = computed(() => {
+    return posts.value.filter((p) => p.user === username.value);
+});
 </script>
 
 <style scoped>

@@ -3,6 +3,7 @@ import Home from "../pages/Home.vue"; // Importa sua Home
 import Login from "../pages/Login.vue"; // Importa o Login do seu amigo
 import Profile from "../pages/Profile.vue";
 import PostDetail from "../pages/PostDetail.vue";
+import Tag from "../pages/Tag.vue";
 // 1. Define as rotas (URLs)
 const routes = [
   {
@@ -26,6 +27,11 @@ const routes = [
     path: "/post/:id", // Ex: /post/123
     name: "PostDetail",
     component: PostDetail,
+  },
+  {
+    path: "/tags/:tagName",
+    name: "Tag",
+    component: Tag,
   },
 ];
 

@@ -1,26 +1,27 @@
 <template>
-    <div>
-        <CreatePostWidget :user="currentUser" />
-
-        <PostItem
-            v-for="post in posts"
-            :key="post.id"
-            :postId="post.id"
-            :username="post.user"
-            :text="post.text"
-            :avatar-url="post.avatarUrl"
-            :image-url="post.imageUrl"
-            :commission-status="post.commissionStatus"
-        />
-    </div>
+  <div>
+    <h2>Posts com a tag #{{ tagName }}</h2>
+    <PostItem
+      v-for="post in taggedPosts"
+      :key="post.id"
+      :postId="post.id"
+      :username="post.user"
+      :text="post.text"
+      :avatar-url="post.avatarUrl"
+      :image-url="post.imageUrl"
+      :commission-status="post.commissionStatus"
+    />
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import CreatePostWidget from "../components/post/CreatePostWidget.vue";
-import PostItem from "../components/post/PostItem.vue";
-import { currentUser } from "../service/store.js";
-// 1. RE-ATIVAMOS A LISTA DE POSTS FALSA!
+import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import PostItem from '../components/post/PostItem.vue';
+
+const route = useRoute();
+const tagName = computed(() => route.params.tagName);
+
 const posts = ref([
     {
         id: 1,
@@ -53,16 +54,14 @@ const posts = ref([
     },
 ]);
 
-// 2. DESATIVAMOS A BUSCA NO SUPABASE
-/*
-import { supabase } from '../service/supabase'
-
-onMounted(async () => {
-  // ... (código do supabase comentado) ...
+const taggedPosts = computed(() => {
+  return posts.value.filter(post => post.text.includes(`#${tagName.value}`));
 });
-*/
 </script>
 
 <style scoped>
-/* Aqui ficam estilos SÓ da home, se precisar */
+h2 {
+  padding: 20px;
+  border-bottom: 1px solid #444;
+}
 </style>
