@@ -5,6 +5,7 @@
             :avatar="currentUser.avatar"
             :bio="currentUser.bio"
             :commission-status="currentUser.commissionStatus"
+            :is-my-profile="isMyProfile"
         />
 
         <div class="profile-tabs">
@@ -58,39 +59,7 @@ import { useRoute } from "vue-router";
 import PostItem from "../components/post/PostItem.vue";
 import PostCard from "../components/post/PostCard.vue";
 import ProfileHeader from "../components/profile/ProfileHeader.vue";
-
-// --- 1. SIMULAÇÃO DO BANCO DE DADOS DE USUÁRIOS (ATUALIZADO!) ---
-const fakeUserDatabase = {
-    // Usuários que já tínhamos
-    ArtistaManga: {
-        avatar: "https://i.pravatar.cc/150?img=11", // (Você pode trocar este)
-        bio: "Artista digital e fã de mangá.",
-        commissionStatus: "Aberto",
-    },
-
-    // --- NOVOS USUÁRIOS (Sincronizados com o seu Home.vue) ---
-    Zumi: {
-        avatar: "https://64.media.tumblr.com/837a686c6e497180890c1cad980b8326/c59fb7be68d45748-86/s1280x1920/cae307c29c98e40dc08be601d5cbb38051c4111e.png",
-        bio: "Só uma garota que ama desenhar",
-        commissionStatus: "Aberto",
-    },
-    sanobdd: {
-        avatar: "https://pbs.twimg.com/profile_images/1979504749406806016/5jfrLI0__400x400.jpg",
-        bio: "Fanart de animes de esporte é minha especialidade.",
-        commissionStatus: "Fechado",
-    },
-    vialentino: {
-        avatar: "https://i.pinimg.com/736x/4d/f2/20/4df220f7fa1a115dfc8fe1dc42471865.jpg",
-        bio: "Artista de retratos e iluminação.",
-        commissionStatus: "Lista de Espera",
-    },
-    ArtistaDestaque: {
-        avatar: "https://pbs.twimg.com/profile_images/1785368383201890304/mXGKNvu-_400x400.jpg",
-        bio: "Artista em destaque da semana.",
-        commissionStatus: "Aberto",
-    },
-};
-// --- Fim da Simulação ---
+import { currentUser as loggedInUser } from "../service/store.js";
 
 const posts = ref([
     {
@@ -124,14 +93,30 @@ const posts = ref([
     },
 ]);
 
+const fakeUserDatabase = {
+    Zumi: {
+        avatar: "https://64.media.tumblr.com/837a686c6e497180890c1cad980b8326/c59fb7be68d45748-86/s1280x1920/cae307c29c98e40dc08be601d5cbb38051c4111e.png",
+        bio: "Só uma garota que ama desenhar",
+        commissionStatus: "Aberto",
+    },
+    sanobdd: {
+        avatar: "https://pbs.twimg.com/profile_images/1979504749406806016/5jfrLI0__400x400.jpg",
+        bio: "Fanart de animes de esporte é minha especialidade.",
+        commissionStatus: "Fechado",
+    },
+    vialentino: {
+        avatar: "https://i.pinimg.com/736x/4d/f2/20/4df220f7fa1a115dfc8fe1dc42471865.jpg",
+        bio: "Artista de retratos e iluminação.",
+        commissionStatus: "Lista de Espera",
+    },
+};
+
 const route = useRoute();
 const activeTab = ref("portfolio");
 
 const username = computed(() => route.params.username);
 
-// 2. BUSCA O USUÁRIO CORRETO
 const currentUser = computed(() => {
-    // Agora ele vai achar "Zumi" e retornar os dados corretos
     return (
         fakeUserDatabase[username.value] || {
             avatar: "https://i.pravatar.cc/150?img=1",
@@ -141,7 +126,6 @@ const currentUser = computed(() => {
     );
 });
 
-// --- Dados Falsos (Agora dinâmicos!) ---
 const portfolioPosts = computed(() => {
     return posts.value.filter((p) => p.user === username.value);
 });
@@ -149,6 +133,8 @@ const portfolioPosts = computed(() => {
 const feedPosts = computed(() => {
     return posts.value.filter((p) => p.user === username.value);
 });
+
+const isMyProfile = computed(() => loggedInUser.value.name === username.value);
 </script>
 
 <style scoped>

@@ -4,7 +4,12 @@
         <div class="header-info">
             <div class="info-top-row">
                 <h1 class="username">{{ username }}</h1>
-                <button class="follow-button">Seguir</button>
+                <button v-if="!isMyProfile" class="follow-button">
+                    Seguir
+                </button>
+                <button v-if="isMyProfile" class="edit-profile-button">
+                    Editar Perfil
+                </button>
             </div>
             <p class="bio">{{ bio }}</p>
 
@@ -27,6 +32,7 @@ defineProps({
     avatar: String,
     bio: String,
     commissionStatus: String,
+    isMyProfile: Boolean,
 });
 </script>
 
@@ -63,6 +69,18 @@ defineProps({
     padding: 8px 16px;
     font-weight: 600;
     cursor: pointer;
+}
+.edit-profile-button {
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.edit-profile-button:hover {
+    background-color: #222;
 }
 .bio {
     font-size: 1em;
