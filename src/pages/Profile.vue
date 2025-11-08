@@ -119,7 +119,7 @@ const username = computed(() => route.params.username);
 const currentUser = computed(() => {
     return (
         fakeUserDatabase[username.value] || {
-            avatar: "https://i.pravatar.cc/150?img=1",
+            avatar: "https://images.steamusercontent.com/ugc/687144448805587280/6085648611088858DCCDB7A0C088B5A074FE07C3/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false",
             bio: "Usuário não encontrado.",
             commissionStatus: "Fechado",
         }
