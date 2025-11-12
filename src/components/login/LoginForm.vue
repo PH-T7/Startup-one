@@ -1,5 +1,5 @@
 <template>
-  <!-- Carrossel de imagens de artistas atrás do login (opcional, comente se quiser usar o fundo estático) -->
+  <!-- Carrossel de imagens de artistas atrás do login  -->
   <div class="background-carousel">
     <div class="carousel-slide">
       <img
@@ -21,55 +21,45 @@
      data-creator="@Sm_afn"
      data-avatar="https://i.redd.it/snoovatar/avatars/1e8df099-d8d0-46a1-b76f-34032e95fd4d.png"
      >
-      <!-- Adicione mais imagens com data-artist e data-creator conforme necessário -->
-      <!-- Exemplo:
-      <img src="URL_DA_IMAGEM_2" alt="Background 2" data-artist="Artista 2" data-creator="Criador 2">
-      <img src="URL_DA_IMAGEM_3" alt="Background 3" data-artist="Artista 3" data-creator="Criador 3">
-      -->
+ 
     </div>
   </div>
 
-  <!-- Fundo estático (descomente e comente o background-carousel se preferir usar apenas uma imagem) -->
-  <!--
-  <div class="background">
-    <img src="https://static0.cbrimages.com/wordpress/wp-content/uploads/2020/03/soul-society.jpg" alt="Background">
-  </div>
-  -->
 
-  <!-- Tela de Login -->
 
+  <!--Tela de login-->
   <div class="container">
     <div class="login-card">
       <div class="card-logo"></div>
       
       
       <transition name="fade-slide" mode="out-in">
-      <div v-if="!isSignup" key="login">
+      <div v-if="screen === 'login'" key="login">
+      <div class="login-title"><h1>Nexo Art</h1></div>
       <div class="tagline">Onde as cores contam a história que as palavras não alcançam.</div>
       <h1 class="login-title">Acesse com sua conta na Nexo Art.</h1>
       <label for="email">Email:</label>
       <input type="email" v-model="email" id="email" class="textoRegistro" placeholder="Digite o seu E-mail">
       <label for="password">Senha:</label>
       <input type="password" v-model="password" class="textoRegistro" placeholder="Digite a sua senha">
-      <div v-if="errorMessage" class="error-message">
+      <!-- Esqueci a senha -->
+      <div class="forgot-password">
+      <button class="link-btn" @click="goToRecovery">Esqueci minha senha</button>
+      </div>
+      <div v-if="loginError" class="error-message">
       <svg class="error-icon" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
       </svg>
-      <span class="error-text">{{ errorMessage }}</span>
+      <span class="error-text">{{ loginError }}</span>
       </div>
       <button class="btn-primary login-btn" @click="handleLogin" :disabled="isLoading" type="button">
       {{ isLoading ? "Entrando..." : "Entrar" }}
       </button>
       <button class="btn-primary" @click="toggleMode">Crie uma conta</button>
-      
-      
-
       <div class="divider">Entrar com uma conta existente</div>
       <div class="social-login">
-      
-        
-        <!-- Google -->
-        <button class="social-btn" @click="handleSocialLogin('google')" aria-label="Login with Google">
+      <!-- Google -->
+         <button class="social-btn" @click="handleSocialLogin('google')" aria-label="Login with Google">
           <svg viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -96,8 +86,56 @@
     
 
 
+    <!--tela de recuperação de senha-->
+    <div v-else-if="screen === 'recovery'" key="recovery">
+    <h1 class="login-title">Recuperar senha</h1>
+    <p class="info-text">Digite seu e-mail para receber um código de verificação.</p>
+    
+    <label for="recovery-email">E-mail:</label>
+    <input type="email" v-model="recoveryEmail" class="textoRegistro" placeholder="Seu e-mail" value="24850@facens.br">
+    
+    <button class="btn-primary" @click="sendCode" :disabled="isLoading">
+      {{ isLoading ? "Enviando..." : "Enviar código" }}
+    </button>
+    
+    <button class="btn-secondary" @click="screen = 'login'" style="margin-top: 12px;">
+      Voltar ao login
+    </button>
+  </div>
+  <!--tela para trocar a senha-->
+  <div v-else-if="screen === 'verify'" key="verify">
+    <h1 class="login-title">Verificar código</h1>
+    <p class="info-text">Digite o código enviado para <strong>{{ recoveryEmail }}</strong></p>
+    
+    <label for="code">Código de 6 dígitos:</label>
+    <input type="text" v-model="code" class="textoRegistro" placeholder="000000" maxlength="6" value="123456">
+    
+    <label for="new-password">Nova senha:</label>
+    <input type="password" v-model="newPassword" class="textoRegistro" placeholder="Crie uma nova senha" value="nova123">
+    
+    <label for="confirm-new-password">Confirmar senha:</label>
+    <input type="password" v-model="confirmNewPassword" class="textoRegistro" placeholder="Repita a nova senha" value="nova123">
+
+    <div v-if="recoveryError" class="error-message">
+  <svg class="error-icon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+  </svg>
+  <span class="error-text">{{ recoveryError }}</span>
+</div>
+    
+    <button class="btn-primary" @click="resetPassword" :disabled="isLoading">
+      {{ isLoading ? "Alterando..." : "Alterar senha" }}
+    </button>
+    
+    <button class="btn-secondary" @click="screen = 'login'" style="margin-top: 12px;">
+      Voltar ao login
+    </button>
+  </div>
+
+
+
     <!--Tela de cadastro-->
-    <div v-else key="signup">
+    <div v-else-if="screen === 'signup'" key="signup">
         <h1 class="login-title">Crie sua conta na Nexo Art.</h1>
 
         <div class="field-wrapper">
@@ -160,10 +198,10 @@
 </button>
 <button 
   class="btn-secondary" 
-  @click="isSignup = false; errors = {}"
+  @click="screen = 'login'; isSignup = false; errors = {}"
   style="margin-top: 16px; width: 100%;"
 >
-  Já tem uma conta? 
+  Já tem uma conta?
 </button>
 
       </div>
@@ -185,46 +223,66 @@
 import { onMounted, ref, computed } from "vue";
 import { useRouter } from "vue-router";
 
-
-
-// Referências reativas
+// --- Login ---
 const email = ref("");
 const password = ref("");
-const errorMessage = ref("");
-const router = useRouter();
-const isLoading = ref(false);
+
+// --- Cadastro ---
 const name = ref("");
 const confirmPassword = ref("");
-const signupError = ref("");
+
+// --- Controle de UI ---
+const router = useRouter();
+const isLoading = ref(false);
 const isSignup = ref(false);
 const errors = ref({})
 
-//Verificar se o cadastro está certo
+
+// --- Mensagens de erro (separadas por tela) ---
+const loginError = ref('')
+const recoveryError = ref('')
 
 
-const canSubmit = computed(() => fieldErrors.value.length === 0 && !isLoading.value);
+// --- Recuperação de senha ---
+const screen = ref('login') 
+const recoveryEmail = ref('24850@facens.br')
+const code = ref('123456')
+const newPassword = ref('nova123')
+const confirmNewPassword = ref('nova123')
 
 
+// --Alterna do login para a tela de cadastro e limpa todos os campos e erros--
 const toggleMode = () => {
-  isSignup.value = !isSignup.value;
-  errorMessage.value = "";
-  signupError.value = "";
-  email.value = password.value = confirmPassword.value = name.value = "";
-  
-};
+  screen.value = 'signup'//Muda a tela de cadastro
+  isSignup.value = true //Marca como modo cadastro
+  loginError.value = "" //limpa erro do login
+  recoveryError.value = "" //limpa erro da recuperação
+  email.value = password.value = confirmPassword.value = name.value = "" //Reseta o formulario
+}
 
 
 
+//Alterna do login para a tela de cadastro e limpa todos os campos
+const goToRecovery = () => {
+ screen.value = 'recovery'
+  recoveryError.value = ''  // limpa erro da recuperação
+  loginError.value = ''     // limpa erro do login
+}
 
+
+// 1 - Simula login com validação
+ // 2 - Verifica se campos estão preenchidos
+ // 3 - Simula delay de rede
+ //4 - Verifica credenciais fixas (24850@facens.br / 123)
+ // 5 - Redireciona para /Home se sucesso
 const handleLogin = async () => {
-  errorMessage.value = ""; 
+  loginError.value = ""; 
 
-  // --- 1. Validação Simples ---
   if (!email.value || !password.value) {
-    errorMessage.value = "Por favor, preencha o email e a senha.";
-    return; // Para a execução
+    loginError.value = "Por favor, preencha o email e a senha.";
+    return; 
   }
-    isLoading.value = true; // Desabilita botão
+    isLoading.value = true; 
 
   try {
     // Simulação de login (substitua por API real depois)
@@ -234,32 +292,40 @@ const handleLogin = async () => {
       console.log("Login bem-sucedido!");
       router.push('/Home');
     } else {
-      errorMessage.value = "Email ou senha inválidos.";
+      loginError.value = "Email ou senha inválidos.";
     }
   } catch (err) {
-    errorMessage.value = "Erro ao fazer login. Tente novamente.";
+    loginError.value = "Erro ao fazer login. Tente novamente.";
+
   } finally {
     isLoading.value = false;
   }
 };
 
+
+// 1 - Simula cadastro com validação completa
+// 2 - Valida nome, email, senha (mín. 6 chars), confirmação
+// 3 - Exibe erros específicos por campo
+// 4 - Simula delay e redireciona
 const handleSignup = async () => {
   errors.value = {} // limpa todos os erros
-
   let hasError = false
 
   if (!name.value.trim()) {
     errors.value.name = "Digite seu nome completo"
     hasError = true
   }
+
   if (!/^\S+@\S+\.\S+$/.test(email.value)) {
     errors.value.email = "Email inválido"
     hasError = true
   }
+
   if (password.value.length < 6) {
     errors.value.password = "Mínimo 6 caracteres"
     hasError = true
   }
+
   if (password.value !== confirmPassword.value) {
     errors.value.confirmPassword = "Senhas não coincidem"
     hasError = true
@@ -267,19 +333,67 @@ const handleSignup = async () => {
 
   if (hasError) return // para aqui se tiver erro
 
-  // ==== TUDO CERTO → CADASTRA ====
+  // Simulação cadastro
   isLoading.value = true
   await new Promise(r => setTimeout(r, 1000))
   alert("Cadastro criado com sucesso! 🎉")
-  router.push("/Home")
+  router.push("/Home")//o caminho onde vai ser transferido
   isLoading.value = false
 }
+
+
+// 1 - Simula login com Google, X ou Facebook
+// 2 - (Apenas placeholder — integrar com OAuth depois)
 const handleSocialLogin = (provider) => {
   console.log(`Social login with ${provider}`);
   alert(`Login com ${provider}...`);
 };
 
-// Configuração do carrossel
+
+// 1 - Mostra carregamento
+// 2 - Exibe alerta com email
+// 3 - Avança para tela de verificação
+const sendCode = async () => {
+  isLoading.value = true
+  await new Promise(r => setTimeout(r, 800))
+  alert(`Código enviado para ${recoveryEmail.value}`)
+  screen.value = 'verify'
+  isLoading.value = false
+}
+
+
+//1 - Valida código e altera senha
+//2 - Verifica código fixo: 123456
+//3 - Verifica se senhas coincidem
+//4 - Atualiza senha e volta ao login
+const resetPassword = async () => {
+recoveryError.value = ''  // limpa erro anterior
+
+  if (code.value !== '123456') {
+    recoveryError.value = 'Código inválido. Use: 123456'
+    return
+  }
+  if (newPassword.value !== confirmNewPassword.value) {
+    recoveryError.value = 'As senhas não coincidem.'
+    return
+  }
+
+  isLoading.value = true
+  await new Promise(r => setTimeout(r, 800))
+  
+  alert('Senha alterada com sucesso!')
+  screen.value = 'login'
+  password.value = 'nova123'
+  recoveryError.value = ''
+  isLoading.value = false
+}
+
+
+
+//1 - Configura carrossel de imagens de fundo com créditos de artistas
+//2 - Seleciona imagens e elementos do DOM
+//3 - Ajusta largura do container
+//4 - Atualiza posição, nome, criador e avatar a cada 5s
 onMounted(() => {
   const carousel = document.querySelector(".carousel-slide");
   if (!carousel) {
@@ -303,7 +417,13 @@ onMounted(() => {
   carousel.style.width = `${100 * totalImages}vw`;
   carousel.style.display = "flex";
 
-  const updateCarousel = () => {
+
+//1 - Atualiza slide atual:
+//2 - Move carrossel com translateX
+//3 - Atualiza nome do artista
+//4 - Atualiza criador (@handle)
+//5 - Atualiza avatar com imagem do data-avatar
+const updateCarousel = () => {
     // Atualiza posição do carrossel
     const translateValue = -(index * (100 / totalImages));
     carousel.style.transform = `translateX(${translateValue}%)`;
@@ -319,6 +439,8 @@ onMounted(() => {
         currentImage.dataset.creator || "Criador Desconhecido"
       }`;
 
+
+
       // ATUALIZA AVATAR (agora dentro da função!)
       const avatarUrl = currentImage.dataset.avatar;
       if (avatarUrl) {
@@ -331,6 +453,8 @@ onMounted(() => {
     }
   };
 
+
+//Avança para próximo slide
   const nextSlide = () => {
     index = (index + 1) % totalImages;
     updateCarousel();
@@ -343,9 +467,6 @@ onMounted(() => {
   const intervalId = setInterval(nextSlide, 5000);
   console.log("Carrossel iniciado com sucesso! ID:", intervalId);
 });
-
-
-
 </script>
 
 
@@ -366,22 +487,24 @@ body {
 
 /* Carrossel de fundo (se usado) */
 .background-carousel {
+  content: '';
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   z-index: 0;
+  pointer-events: none;
   overflow: hidden;
-   background-color: black;
 }
 
 .carousel-slide {
- display: flex;
-   /* Define largura para 2 imagens (100% por imagem) */
+position: absolute;
+  top: 0; left: 0;
+  width: 100%;
   height: 100%;
+  display: flex;
   will-change: transform;
   transition: transform 1.2s ease-in-out;
+    overflow: hidden;
 }
 
 .carousel-slide img {
@@ -389,67 +512,50 @@ body {
   height: 100vh;
   object-fit: cover;
   flex-shrink: 0;
-  filter: brightness(0.8); /* escurece levemente para o texto sobressair */
-  image-rendering: auto; /* melhora qualidade em telas grandes */
+  filter: brightness(0.75) contrast(1.1); /* Leve melhora na arte */
+    overflow: hidden;
 }
 
-.background-carousel::after {
+.background-carousel::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.1);
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(15, 15, 25, 0.75); /* Cinza-azulado escuro, mais suave que preto */
+  backdrop-filter: blur(8px);
+  z-index: 1;
+  pointer-events: none;
+    overflow: hidden;
 }
 
-/* Fundo estático (se usado) */
-/*.background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-.background img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(3px);
-}
-
-.background::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.1);
-}*/
 
 /* Main Container */
 .container {
   position: relative;
-  z-index: 1;
+  z-index: 2; /* Acima do overlay */
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+    overflow: hidden;
 }
 
 /* Login Card */
 .login-card {
-  background: white;
+  background: rgba(20, 20, 30, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 24px;
   padding: 48px 40px;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
   text-align: center;
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(16px);
+  color: #f0f0f0 !important;
+    overflow: hidden;
 }
 
 .card-logo {
@@ -461,118 +567,123 @@ body {
 }
 
 .tagline {
-  color: #ff6f61; /* Coral suave com gradiente */
-  background: linear-gradient(45deg, #ff6f61, #ff8e53);
+  color: #ff8e53 !important;
+  background: linear-gradient(90deg, #ff6f61, #ffab91);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-size: 18px;
+  font-size: 17px;
   margin-bottom: 32px;
   font-weight: 500;
-  font-family: 'Playfair Display', serif; /* Fonte elegante e cursiva */
-  text-align: center;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.8px;
 }
 
 .login-title {
-  color: #2c3e50; /* Azul escuro sofisticado */
-  font-size: 24px;
-  margin-bottom: 24px;
+color: #ffffff !important;
+  font-size: 26px;
+  margin-bottom: 28px;
   font-weight: 700;
-  font-family: 'Montserrat', sans-serif; /* Fonte moderna e bold */
-  text-transform: uppercase;
-  text-align: center;
-  position: relative;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
 }
 
 /* Labels e Inputs */
 label {
   display: block;
-  font-size: 16px;
-  color: #34495e; /* Azul acinzentado elegante */
+  font-size: 15px;
+  color: #e0e0e0 !important;
   margin-bottom: 8px;
   text-align: left;
-  font-family: 'Lora', serif; /* Fonte serifada refinada */
-  font-weight: 600;
-  position: relative;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 label::before {
   content: '★';
-  color: #ff6f61;
-  margin-right: 5px;
-  opacity: 0.7;
+  color: #ff8e53;
+  margin-right: 6px;
+  font-size: 12px;
+  opacity: 0.8;
 }
 
 .textoRegistro {
- width: 100%;
-  padding: 12px;
-  border: 2px solid #ffffff;
-  border-radius: 8px;
+width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
   font-size: 16px;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
   outline: none;
-  background-color: transparent;
-  color: #333;
-  box-sizing: border-box;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff !important;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.3s ease;
 }
 
 .textoRegistro::placeholder {
- color: #666;
-  font-style: italic;;
+ color: rgba(255, 255, 255, 0.5) !important;
+  font-style: normal;
 }
 
 .textoRegistro:focus {
-border-color: #ffffff;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+border-color: #0096FA !important;
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 0 0 3px rgba(0, 150, 250, 0.2) !important;
+  transform: translateY(-1px);
 }
 
 /* Buttons */
 .btn-primary {
   width: 100%;
-  padding: 14px 24px;
-  background: #0096FA;
-  color: white;
+  padding: 15px;
+  background: linear-gradient(135deg, #0096FA, #0078c7) !important;
+  color: white !important;
   border: none;
-  border-radius: 24px;
+  border-radius: 14px;
   font-size: 16px;
   font-weight: 600;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(0, 150, 250, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 150, 250, 0.3);
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
+background: linear-gradient(135deg, #0078c7, #005a99) !important;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 150, 250, 0.25);
+  box-shadow: 0 8px 20px rgba(0, 150, 250, 0.4);
 }
 
 .btn-secondary {
- background: #28a745;
-  border: none;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 14px 24px;
-  border-radius: 24px;
-  margin-bottom: 32px;
-  transition: background 0.2s;
+background: transparent !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  color: #e0e0e0 !important;
+  padding: 14px;
+  border-radius: 14px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-  background: #218838;
+ background: rgba(255, 255, 255, 0.15) !important;
+  border-color: #0096FA !important;
+  color: #ffffff !important;
 }
 
 /* Divider */
 .divider {
-  color: #999;
-  font-size: 13px;
-  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.5) !important;
+  font-size: 14px;
+  margin: 24px 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  
 }
 
 /* Social Login */
@@ -587,19 +698,20 @@ border-color: #ffffff;
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 1px solid #e0e0e0;
-  background: white;
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .social-btn:hover {
-  border-color: #0096FA;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 150, 250, 0.2);
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: #0096FA !important;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 150, 250, 0.25);
 }
 
 .social-btn svg {
@@ -629,7 +741,7 @@ border-color: #ffffff;
   bottom: 20px;
   right: 20px;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(0, 0, 0, 0.7) !important;
   padding: 12px 16px;
   border-radius: 24px;
   display: flex;
@@ -637,7 +749,9 @@ border-color: #ffffff;
   gap: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   font-size: 13px;
-  color: #666;
+  color: #fff !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .artist-info {
@@ -651,6 +765,7 @@ border-color: #ffffff;
 
 .artist-creator {
   font-size: 12px;
+  color: #fff !important;
 }
 
 .artist-avatar {
@@ -685,14 +800,14 @@ border-color: #ffffff;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-  color: #c62828;
+  background: rgba(211, 47, 47, 0.2) !important;
+  color: #ff8a80 !important;
   font-family: 'Lora', serif;
   font-weight: 600;
   font-size: 15px;
   padding: 14px 18px;
   border-radius: 16px;
-  border: 1.5px solid #ef9a9a;
+  border: 1px solid rgba(211, 47, 47, 0.4) !important;
   margin: 18px 0;
   box-shadow: 0 4px 12px rgba(230, 74, 74, 0.15);
   animation: fadeIn 0.4s ease-out;
@@ -743,13 +858,13 @@ border-color: #ffffff;
 
 
 .btn-primary.login-btn {
-  background: #28a745 !important;
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+  background: linear-gradient(135deg, #28a745, #218838) !important;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
 .btn-primary.login-btn:hover {
-  background: #218838 !important;
-  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3)
+  background: linear-gradient(135deg, #218838, #1e7e34) !important;
+  box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
 }
 
 
@@ -771,23 +886,86 @@ border-color: #ffffff;
 }
 
 .textoRegistro.error {
-  border: 2px solid #e53935 !important;
-  box-shadow: 0 0 8px rgba(229, 57, 53, 0.3) !important;
+  border-color: #ff6b6b !important;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2) !important;
 }
 
-.fb-error {
-  position: absolute;
-  left: 0;
-  bottom: -12px;
+.fb-error { 
+ color: #ff6b6b !important;
   font-size: 13px;
-  color: #e53935;
+  font-family: 'Inter', sans-serif;
   font-weight: 500;
-  font-family: 'Segoe UI', sans-serif;
-  animation: slideUp 0.3s ease;
 }
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+
+/*aqui é pra nao ter o scroll no site. */
+html, body {
+  overflow: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #0f0f19; /* Fundo de segurança */
+}
+
+#app {
+  height: 100%;
+  position: relative;
+}
+
+
+.forgot-password {
+  text-align: left;
+  margin: -8px 0 20px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #ff8e53;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.link-btn:hover {
+  color: #ff6f61;
+}
+
+.info-text {
+font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #e0e0e0;
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 24px;
+  letter-spacing: 0.2px;
+  opacity: 0.95;
+  transition: all 0.3s ease;
+
+  /* Destaque sutil no strong */
+  strong {
+    color: #ffffff;
+    font-weight: 600;
+    background: linear-gradient(90deg, #ff8e53, #ff6f61);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-style: italic;
+  }
+
+  /* Efeito ao passar o mouse (opcional, mas bonito) */
+  &:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
 }
 </style>
