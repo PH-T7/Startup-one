@@ -59,7 +59,7 @@ import { useRoute } from "vue-router";
 import PostItem from "../components/post/PostItem.vue";
 import PostCard from "../components/post/PostCard.vue";
 import ProfileHeader from "../components/profile/ProfileHeader.vue";
-import { currentUser as loggedInUser } from "../service/store.js";
+import { currentUser as loggedInUser } from "../lib/store.js";
 
 const posts = ref([
     {

@@ -2,7 +2,11 @@
     <div class="app-container">
         <header class="col-nav">
             <Navbar />
-            <SidebarTags :user="fakeMe" :tags="trendingTags" />
+            <SidebarTags
+                v-if="currentUser"
+                :user="currentUser"
+                :tags="trendingTags"
+            />
         </header>
 
         <main class="col-feed">
@@ -23,11 +27,7 @@ import SidebarTags from "./components/layout/SidebarTags.vue";
 import SidebarRecomendados from "./components/layout/SidebarRecomendados.vue";
 
 // 2. Importa o "usuário logado" do nosso store
-import { currentUser } from "./service/store.js";
-
-// 3. Renomeamos para 'fakeMe' para o template funcionar
-//    (O template estava usando :user="fakeMe")
-const fakeMe = currentUser;
+import { currentUser } from "./lib/store.js";
 
 const posts = ref([
     {

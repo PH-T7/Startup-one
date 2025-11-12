@@ -1,18 +1,30 @@
 <template>
     <aside class="sidebar-recomendados">
-        <section class="featured-artist">
+        <section v-if="featuredArtist" class="featured-artist">
             <h3>Artista em Destaque</h3>
-            <router-link to="/perfil/vialentino" class="artist-card-link">
+            <router-link
+                :to="`/perfil/${featuredArtist.username}`"
+                class="artist-card-link"
+            >
                 <div class="artist-card">
                     <img
-                        src="https://i.pinimg.com/736x/4d/f2/20/4df220f7fa1a115dfc8fe1dc42471865.jpg"
+                        :src="featuredArtist.avatar_url"
                         class="artist-avatar"
+                        alt="Avatar do artista em destaque"
                     />
                     <div class="artist-info">
-                        <strong>vialentino</strong>
-                        <span class="artist-status aberto"
-                            >Comissões Abertas</span
+                        <strong>{{ featuredArtist.username }}</strong>
+                        <span
+                            v-if="featuredArtist.commission_status"
+                            :class="[
+                                'artist-status',
+                                featuredArtist.commission_status
+                                    .toLowerCase()
+                                    .replace(' ', '-'),
+                            ]"
                         >
+                            {{ featuredArtist.commission_status }}
+                        </span>
                     </div>
                 </div>
             </router-link>
@@ -21,6 +33,7 @@
         <section class="post-grid">
             <h3>Posts de quem você segue</h3>
             <div class="grid-container">
+                <!-- This part is still static, can be made dynamic later -->
                 <div class="grid-item">
                     <img
                         src="https://pbs.twimg.com/media/GK_s8A8WAAA-NfY?format=jpg&name=medium"
@@ -49,6 +62,43 @@
         </section>
     </aside>
 </template>
+
+<script setup>
+import { ref, onMounted } from "vue";
+import { supabase } from "../../service/supabase";
+import { currentUser } from "../../service/store";
+
+const featuredArtist = ref(null);
+
+onMounted(async () => {
+    // Fetch a user that is not the current user, and who has an avatar
+    let query = supabase
+        .from("profiles")
+        .select("*")
+        .not("avatar_url", "is", null) // Ensure the user has an avatar
+        .limit(10); // Fetch a few to have a choice
+
+    const { data, error } = await query;
+
+    if (error) {
+        console.error("Error fetching featured artist:", error);
+    } else if (data) {
+        let artists = data;
+        // Filter out the current user if they are in the list
+        if (currentUser.value) {
+            artists = artists.filter(
+                (artist) => artist.id !== currentUser.value.id,
+            );
+        }
+        // Pick a random artist from the filtered list
+        if (artists.length > 0) {
+            const randomIndex = Math.floor(Math.random() * artists.length);
+            featuredArtist.value = artists[randomIndex];
+        }
+    }
+});
+</script>
+
 <style scoped>
 .sidebar-recomendados {
     padding: 15px;
@@ -66,7 +116,18 @@ h3 {
     margin-top: 10px;
 }
 
-/* ATUALIZADO: Estilo para as imagens / .grid-item { width: 100%; border-radius: 8px; background-color: #333; overflow: hidden; / Garante que a imagem se ajuste / } .grid-item img { width: 100%; height: 100%; object-fit: cover; / Faz a imagem cobrir o espaço / } / FIM DA ATUALIZAÇÃO */
+.grid-item {
+    width: 100%;
+    border-radius: 8px;
+    background-color: #333;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+}
+.grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
 .post-grid {
     margin-bottom: 25px;
@@ -91,6 +152,7 @@ h3 {
     width: 48px;
     height: 48px;
     border-radius: 50%;
+    object-fit: cover;
 }
 .artist-info {
     display: flex;
@@ -107,9 +169,18 @@ h3 {
     border-radius: 10px;
     margin-top: 4px;
     align-self: flex-start;
+    text-transform: capitalize;
 }
 .artist-status.aberto {
     background-color: #3aa073;
+    color: white;
+}
+.artist-status.fechado {
+    background-color: #d1495b;
+    color: white;
+}
+.artist-status.lista-de-espera {
+    background-color: #fca311;
     color: white;
 }
 </style>

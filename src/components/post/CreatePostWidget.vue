@@ -2,7 +2,11 @@
     <div class="create-post-widget">
         <div class="input-row">
             <img
-                :src="user ? user.avatar : 'https://i.pravatar.cc/150?img=1'"
+                :src="
+                    currentUser
+                        ? currentUser.avatar_url
+                        : 'https://i.pravatar.cc/150?img=1'
+                "
                 class="avatar"
                 alt="Seu Avatar"
             />
@@ -49,10 +53,6 @@ import { useRouter } from "vue-router";
 // 1. IMPORTAR O 'supabase' (para DB) E A NOVA FUNÇÃO 'getPublicUrl'
 import { supabase, getPublicUrl } from "../../service/supabase";
 import { currentUser } from "../../service/store.js";
-
-defineProps({
-    user: Object,
-});
 
 const router = useRouter();
 const newPostText = ref("");
@@ -118,15 +118,15 @@ async function handlePost() {
             console.log("Arquivo enviado! URL:", uploadedImageUrl);
         }
 
-        // 3. SALVAR O POST NO FIRESTORE (Database)
+        // 3. SALVAR O POST NO BANCO DE DADOS (Database)
         const { error: insertError } = await supabase.from("posts").insert([
             {
-                user: currentUser.value.name,
+                user: currentUser.value.username,
                 text: newPostText.value,
-                avatarUrl: currentUser.value.avatar,
+                avatarUrl: currentUser.value.avatar_url,
                 // Usa a URL do upload! Se não houver, fica nulo.
                 imageUrl: uploadedImageUrl,
-                commissionStatus: "Aberto",
+                commissionStatus: currentUser.value.commission_status,
             },
         ]);
 
