@@ -65,8 +65,8 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { supabase } from "../../service/supabase";
-import { currentUser } from "../../service/store";
+import { supabase } from "../../lib/supabaseClient";
+import store from "@/lib/store.js"; // Import CORRETO
 
 const featuredArtist = ref(null);
 
@@ -84,12 +84,16 @@ onMounted(async () => {
         console.error("Error fetching featured artist:", error);
     } else if (data) {
         let artists = data;
-        // Filter out the current user if they are in the list
-        if (currentUser.value) {
+
+        // --- CORREÇÃO AQUI ---
+        // Verifica se o usuário está logado usando o store
+        if (store.state.currentUser) {
             artists = artists.filter(
-                (artist) => artist.id !== currentUser.value.id,
+                // E filtra o ID do usuário logado usando o store
+                (artist) => artist.id !== store.state.currentUser.id,
             );
         }
+
         // Pick a random artist from the filtered list
         if (artists.length > 0) {
             const randomIndex = Math.floor(Math.random() * artists.length);

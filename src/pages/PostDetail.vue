@@ -1,85 +1,111 @@
 <template>
     <div v-if="post">
-        <PostItem
-            :postId="post.id"
-            :username="post.user"
-            :text="post.text"
-            :avatar-url="post.avatarUrl"
-            :image-url="post.imageUrl"
-            :commission-status="post.commissionStatus"
-        />
+        <PostItem :post="post" />
+    </div>
+    <div class="comments-section">
+        <h3>Comentários</h3>
 
-        <div class="comments-section">
-            <h3>Comentários</h3>
-            <div class="comment">
-                <strong>OutroArtista:</strong>
-                <p>Uau, que incrível! 😮</p>
+        <div v-if="comments.length > 0">
+            <div v-for="comment in comments" :key="comment.id" class="comment">
+                <router-link
+                    :to="`/perfil/${comment.profiles.username}`"
+                    class="comment-author-link"
+                >
+                    <img
+                        :src="
+                            comment.profiles.avatar_url ||
+                            'https://i.imgur.com/626N2S4.png'
+                        "
+                        class="comment-avatar"
+                    />
+                    <strong>{{ comment.profiles.username }}:</strong>
+                </router-link>
+                <p>{{ comment.content }}</p>
             </div>
-            <div class="comment">
-                <strong>NexoArtFan:</strong>
-                <p>Amei as cores!</p>
-            </div>
-            <textarea
-                class="comment-input"
-                placeholder="Escreva um comentário..."
-            ></textarea>
-            <button class="comment-button" @click="handleSendComment">
-                Enviar
-            </button>
         </div>
+
+        <div v-else>
+            <p>Nenhum comentário ainda. Seja o primeiro!</p>
+        </div>
+
+        <textarea
+            class="comment-input"
+            placeholder="Escreva um comentário..."
+            v-model="newComment"
+        ></textarea>
+        <button class="comment-button" @click="handleSendComment">
+            Enviar
+        </button>
     </div>
 </template>
 
 <script setup>
-// (O script setup dele fica igual ao que fizemos antes)
-import { ref, computed } from "vue";
+import { ref, onMounted, computed } from "vue"; // <-- Importe 'computed'
 import { useRoute } from "vue-router";
 import PostItem from "../components/post/PostItem.vue";
-
-// 1. COPIAMOS O BANCO DE DADOS FALSO DA HOME
-const posts = ref([
-    {
-        id: 1,
-        user: "Zumi",
-        text: "a Luz! ✨ #TheOwlHouse",
-        avatarUrl:
-            "https://64.media.tumblr.com/837a686c6e497180890c1cad980b8326/c59fb7be68d45748-86/s1280x1920/cae307c29c98e40dc08be601d5cbb38051c4111e.png",
-        imageUrl:
-            "https://64.media.tumblr.com/5fde43ff17805e35207f293a2a9a9490/fe1fd5995f06f3b8-9f/s1280x1920/54b47d6e2919a29bb5d42e3fd36ec52feaeadd02.png",
-        commissionStatus: "Aberto",
-    },
-    {
-        id: 2,
-        user: "sanobdd",
-        text: "Um sketch rápido do Aomine. 🏀 #KurokoNoBasket",
-        avatarUrl:
-            "https://pbs.twimg.com/profile_images/1979504749406806016/5jfrLI0__400x400.jpg",
-        imageUrl: "https://pbs.twimg.com/media/E0laSkHWQAgvpPL.jpg",
-        commissionStatus: "Fechado",
-    },
-    {
-        id: 3,
-        user: "vialentino",
-        text: "Estudando um pouco de iluminação em retratos.",
-        avatarUrl:
-            "https://i.pinimg.com/736x/4d/f2/20/4df220f7fa1a115dfc8fe1dc42471865.jpg",
-        imageUrl:
-            "https://scontent.fsod2-1.fna.fbcdn.net/v/t39.30808-6/465578040_8912182182166437_3177728228340639453_n.png?_nc_cat=103&ccb=1-7&_nc_sid=127cfc&_nc_ohc=X41WuZ6xThYQ7kNvwHScqB7&_nc_oc=AdnLIPhiZ12ATeLK-CnaW1_WWYoqLoMyxmRvthrVC1YZPMw1bUNRIkHBU9XEedYJoXkMb2GmTJ_wBXq077xD-yww&_nc_zt=23&_nc_ht=scontent.fsod2-1.fna&_nc_gid=Cw5STJ65Ib2ymMGZ93DToA&oh=00_AfiaTG6HmoOMfrQEyH0P8hZQ5brHQ8OGvCo7aZU3xIahRg&oe=6912A838",
-        commissionStatus: "Lista de Espera",
-    },
-]);
+import { supabase } from "../lib/supabaseClient"; // <-- Importe supabase
+import store from "@/lib/store.js"; // <-- Importe a store
 
 const route = useRoute();
-// 2. PEGAMOS O ID DA URL E GARANTIMOS QUE É UM NÚMERO
-const postId = computed(() => parseInt(route.params.id));
+const post = ref(null);
+const postId = route.params.id;
 
-// 3. BUSCAMOS O POST CORRETO NO NOSSO "BANCO DE DADOS"
-const post = computed(() => {
-    return posts.value.find((p) => p.id === postId.value);
+// -- NOVOS REFS PARA COMENTÁRIOS --
+const comments = ref([]);
+const newComment = ref("");
+const currentUser = computed(() => store.state.currentUser);
+
+// -- NOVA FUNÇÃO PARA BUSCAR COMENTÁRIOS --
+async function fetchComments() {
+    try {
+        const { data, error } = await supabase
+            .from("comments")
+            .select("*, profiles(id, username, avatar_url)") // Pega o perfil do comentarista
+            .eq("post_id", postId)
+            .order("created_at", { ascending: true });
+
+        if (error) throw error;
+        comments.value = data;
+    } catch (error) {
+        console.error("Error fetching comments:", error.message);
+    }
+}
+
+// -- onMounted ATUALIZADO --
+onMounted(async () => {
+    const { data, error } = await supabase
+        .from("posts")
+        .select("*, profiles:user_id(id, username, avatar_url, missionstatus)")
+        .eq("id", postId)
+        .single();
+
+    if (error) {
+        console.error("Error fetching post:", error);
+    } else {
+        post.value = data;
+        await fetchComments(); // <-- Busca os comentários DEPOIS de achar o post
+    }
 });
 
-function handleSendComment() {
-    alert("Comentário enviado com sucesso!");
+// -- FUNÇÃO DE ENVIAR ATUALIZADA --
+async function handleSendComment() {
+    if (!newComment.value.trim() || !currentUser.value) return;
+
+    try {
+        const { error } = await supabase.from("comments").insert({
+            post_id: postId,
+            user_id: currentUser.value.id,
+            content: newComment.value,
+        });
+
+        if (error) throw error;
+
+        newComment.value = ""; // Limpa o input
+        await fetchComments(); // Recarrega os comentários
+    } catch (error) {
+        console.error("Error sending comment:", error.message);
+        alert("Erro ao enviar comentário: " + error.message);
+    }
 }
 </script>
 
@@ -119,5 +145,21 @@ function handleSendComment() {
     font-weight: 600;
     cursor: pointer;
     margin-top: 10px;
+}
+.comment-author-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: white;
+}
+.comment-author-link:hover {
+    text-decoration: underline;
+}
+.comment-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 </style>

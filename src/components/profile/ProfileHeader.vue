@@ -7,7 +7,11 @@
                 <button v-if="!isMyProfile" class="follow-button">
                     Seguir
                 </button>
-                <button v-if="isMyProfile" class="edit-profile-button">
+                <button
+                    v-if="isMyProfile"
+                    class="edit-profile-button"
+                    @click="goToEditProfile"
+                >
                     Editar Perfil
                 </button>
             </div>
@@ -27,6 +31,8 @@
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
+
 defineProps({
     username: String,
     avatar: String,
@@ -34,6 +40,12 @@ defineProps({
     commissionStatus: String,
     isMyProfile: Boolean,
 });
+
+const router = useRouter();
+
+const goToEditProfile = () => {
+    router.push("/edit-profile");
+};
 </script>
 
 <style scoped>

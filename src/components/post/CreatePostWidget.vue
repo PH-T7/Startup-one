@@ -47,100 +47,93 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed } from "vue";
+// A router não é mais necessária aqui
+// import { useRouter } from "vue-router";
+import { supabase, getPublicUrl } from "../../lib/supabaseClient";
+import store from "@/lib/store.js";
 
-// 1. IMPORTAR O 'supabase' (para DB) E A NOVA FUNÇÃO 'getPublicUrl'
-import { supabase, getPublicUrl } from "../../service/supabase";
-import { currentUser } from "../../service/store.js";
+// 1. DEFINIR O EVENTO QUE VAMOS EMITIR
+const emit = defineEmits(["post-created"]);
 
-const router = useRouter();
+// const router = useRouter(); // Não precisamos mais
 const newPostText = ref("");
-const isUploading = ref(false); // Para desabilitar o botão de "Postar"
+const isUploading = ref(false);
+const currentUser = computed(() => store.state.currentUser);
 
-// --- Lógica do Upload ---
-const fileInput = ref(null); // Referência para o <input type="file"> escondido
-const selectedFile = ref(null); // O arquivo de verdade
-const selectedFilePreview = ref(null); // A URL de preview (temporária)
+// ... (toda a lógica de 'fileInput', 'handleFileSelect', 'removeImage' continua igual) ...
+const fileInput = ref(null);
+const selectedFile = ref(null);
+const selectedFilePreview = ref(null);
 
-// Função para o botão "📷"
 function triggerFileInput() {
-    fileInput.value.click(); // Clica no input escondido
+    fileInput.value.click();
 }
-
-// Roda quando o usuário seleciona um arquivo
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     selectedFile.value = file;
-
-    // Cria uma URL local SÓ para o preview
     selectedFilePreview.value = URL.createObjectURL(file);
 }
-
-// Limpa a seleção de imagem
 function removeImage() {
     selectedFile.value = null;
     selectedFilePreview.value = null;
-    fileInput.value.value = null; // Limpa o input
+    fileInput.value.value = null;
 }
 
-// --- FIM da Lógica do Upload ---
-
-// FUNÇÃO DE POSTAR (ATUALIZADA PARA UPLOAD)
+// FUNÇÃO DE POSTAR (ATUALIZADA)
 async function handlePost() {
     if (newPostText.value.trim() === "" && !selectedFile.value) {
         alert("Escreva algo ou adicione uma imagem para postar!");
         return;
     }
-
     isUploading.value = true;
     let uploadedImageUrl = null;
 
     try {
-        // 1. FAZER UPLOAD DA IMAGEM (se houver)
         if (selectedFile.value) {
-            console.log("Enviando arquivo para o Supabase Storage...");
-
-            // Gera um nome de arquivo único
-            const fileName = `public/${Date.now()}-${selectedFile.value.name}`;
-
+            const fileName = `public/${currentUser.value.id}-${Date.now()}-${
+                selectedFile.value.name
+            }`;
             const { data: uploadData, error: uploadError } =
                 await supabase.storage
-                    .from("uploads") // Nome do "bucket"
+                    .from("uploads")
                     .upload(fileName, selectedFile.value);
 
             if (uploadError) throw uploadError;
-
-            // 2. PEGAR A URL PÚBLICA (com nossa nova função)
             uploadedImageUrl = getPublicUrl(fileName);
-            console.log("Arquivo enviado! URL:", uploadedImageUrl);
         }
 
-        // 3. SALVAR O POST NO BANCO DE DADOS (Database)
-        const { error: insertError } = await supabase.from("posts").insert([
-            {
-                user: currentUser.value.username,
-                text: newPostText.value,
-                avatarUrl: currentUser.value.avatar_url,
-                // Usa a URL do upload! Se não houver, fica nulo.
-                imageUrl: uploadedImageUrl,
-                commissionStatus: currentUser.value.commission_status,
-            },
-        ]);
+        const { data: newPost, error: insertError } = await supabase
+            .from("posts")
+            .insert([
+                {
+                    user_id: currentUser.value.id,
+                    text: newPostText.value,
+                    imageUrl: uploadedImageUrl, // Coluna correta
+                },
+            ])
+            .select(); // <-- Importante: Pega o post que acabou de ser criado
 
         if (insertError) throw insertError;
 
         console.log("Post criado com sucesso!");
-        removeImage(); // Limpa a imagem
-        newPostText.value = ""; // Limpa o texto
-        window.location.reload(); // Recarrega para ver o novo post
+        removeImage();
+        newPostText.value = "";
+
+        // 2. AVISAR A HOME.VUE (EMITIR O EVENTO)
+        // Nós não vamos recarregar a página
+        // window.location.reload(); // <-- DELETAR ISSO
+
+        // Em vez disso, vamos emitir o evento com o novo post
+        if (newPost && newPost.length > 0) {
+            emit("post-created", newPost[0]);
+        }
     } catch (error) {
         console.error("Erro ao adicionar post: ", error.message);
         alert("Erro ao postar: " + error.message);
     } finally {
-        isUploading.value = false; // Re-abilita o botão
+        isUploading.value = false;
     }
 }
 </script>

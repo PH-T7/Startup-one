@@ -13,5 +13,5 @@ export function getPublicUrl(filePath) {
     .from("uploads") // O nome do "bucket" que criamos
     .getPublicUrl(filePath);
 
-  return data.pub;
+  return data.publicUrl;
 }

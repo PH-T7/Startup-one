@@ -1,11 +1,14 @@
 <template>
     <aside class="sidebar-menu">
         <div v-if="user" class="my-profile-box">
-            <router-link :to="`/perfil/${user.name}`" class="profile-link">
-                <img :src="user.avatar" class="profile-avatar" />
+            <router-link :to="`/perfil/${user.username}`" class="profile-link">
+                <Avatar :src="user.avatar_url" class="profile-avatar" />
+
                 <div class="profile-info">
-                    <strong>{{ user.name }}</strong>
-                    <span>{{ user.handle }}</span>
+                    <strong>{{ user.username }}</strong>
+                    <router-link to="/edit-profile" class="edit-link">
+                        Editar Perfil
+                    </router-link>
                 </div>
             </router-link>
         </div>
@@ -25,8 +28,10 @@
 </template>
 
 <script setup>
+import Avatar from "../common/Avatar.vue"; // Importar o Avatar
+
 defineProps({
-    user: Object, // Vamos receber o objeto 'fakeMe' aqui
+    user: Object, // Vem do App.vue
     tags: Array,
 });
 </script>
@@ -48,11 +53,13 @@ defineProps({
     color: white;
 }
 
+/* Redefinir tamanho do avatar especificamente aqui */
 .profile-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
+    border: none; /* Remover borda do Avatar.vue */
 }
 
 .profile-info {
@@ -64,12 +71,16 @@ defineProps({
     font-weight: 600;
 }
 
-.profile-info span {
+.edit-link {
     font-size: 0.9em;
     color: #aaa;
+    text-decoration: none;
+}
+.edit-link:hover {
+    text-decoration: underline;
 }
 
-/* Estilo para a navegação de tags */
+/* Estilo para a navegação de tags (o que você já tinha) */
 .tags-nav {
     padding: 15px;
     color: white;

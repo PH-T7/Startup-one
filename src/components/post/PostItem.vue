@@ -35,7 +35,14 @@
                 class="icon"
                 @click="handleComment"
             />
-            <img src="@/assets/edit.svg" class="icon" @click="handleEdit" />
+
+            <img
+                v-if="isMyPost"
+                src="@/assets/edit.svg"
+                class="icon"
+                @click="handleEdit"
+            />
+
             <img
                 src="@/assets/refresh-cw.svg"
                 class="icon"
@@ -47,28 +54,75 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
+import { supabase } from "@/lib/supabaseClient.js"; // Importe o Supabase
+import store from "@/lib/store.js"; // Importe a Store
 
-defineProps({
-    postId: [String, Number, Number],
-    username: String,
-    text: String,
-    avatarUrl: String,
-    imageUrl: String,
-    commissionStatus: String,
+const props = defineProps({
+    post: Object,
 });
 
-// Lógica "fake"
-const isLiked = ref(false);
-function handleLike() {
-    console.log("Post curtido!");
+const router = useRouter();
+const currentUser = computed(() => store.state.currentUser);
+
+const postId = computed(() => props.post.id);
+const username = computed(() => props.post.profiles.username);
+const text = computed(() => props.post.text);
+const avatarUrl = computed(() => props.post.profiles.avatar_url);
+const imageUrl = computed(() => props.post.imageUrl);
+const commissionStatus = computed(() => props.post.profiles.missionstatus);
+
+const isLiked = ref(props.post.isLikedByMe);
+const likeCount = ref(props.post.likeCount);
+const isLoadingLike = ref(false);
+
+const isMyPost = computed(() => {
+    return currentUser.value && currentUser.value.id === props.post.user_id;
+});
+
+async function handleLike() {
+    if (!currentUser.value || isLoadingLike.value) return;
+
+    isLoadingLike.value = true;
+
+    try {
+        if (isLiked.value) {
+            const { error } = await supabase.from("likes").delete().match({
+                post_id: postId.value,
+                user_id: currentUser.value.id,
+            });
+
+            if (error) throw error;
+
+            isLiked.value = false;
+            likeCount.value--;
+        } else {
+            const { error } = await supabase.from("likes").insert({
+                post_id: postId.value,
+                user_id: currentUser.value.id,
+            });
+
+            if (error) throw error;
+
+            isLiked.value = true;
+            likeCount.value++;
+        }
+    } catch (error) {
+        console.error("Erro ao curtir:", error.message);
+    } finally {
+        isLoadingLike.value = false;
+    }
 }
+
 function handleComment() {
-    console.log("Abrir comentários...");
+    router.push(`/post/${postId.value}`);
 }
+
 function handleEdit() {
-    console.log("Editar post...");
+    alert("Função de editar o post!");
 }
+
 function handleRepeat() {
     console.log("Repostar...");
 }
@@ -79,6 +133,7 @@ function handleShare() {
 
 <style scoped>
 /* O CSS (está longo, mas é o correto) */
+/* ... (Seu CSS existente fica aqui - não precisa mudar nada) ... */
 .post-card {
     border: 1px solid #444;
     border-radius: 8px;
@@ -140,6 +195,28 @@ function handleShare() {
     filter: invert(1); /* Deixa o SVG branco */
 }
 .icon-liked {
+    /* Este é o filtro que deixa o coração vermelho */
+    filter: invert(30%) sepia(90%) saturate(5000%) hue-rotate(350deg)
+        brightness(100%) contrast(100%);
+}
+.icon {
+    /* ... (estilos existentes) ... */
+
+    /* ADICIONE/AJUSTE ESTES */
+    font-size: 24px; /* Tamanho do emoji */
+    filter: none; /* Remove o 'invert(1)' que não é mais necessário */
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+.icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+.icon-liked {
+    /* ... (estilo existente) ... */
+    filter: none; /* Remove o filtro de cor */
+    opacity: 1;
+    /* Adiciona o filtro vermelho de volta, mas de forma seletiva */
     filter: invert(30%) sepia(90%) saturate(5000%) hue-rotate(350deg)
         brightness(100%) contrast(100%);
 }
