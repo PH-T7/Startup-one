@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <router-link :to="`/post/${postId}`">
+        <router-link :to="`/post/${postId}`" v-if="imageUrl">
             <img :src="imageUrl" alt="Arte do post" class="post-image" />
         </router-link>
 
@@ -70,7 +70,12 @@ const postId = computed(() => props.post.id);
 const username = computed(() => props.post.profiles.username);
 const text = computed(() => props.post.text);
 const avatarUrl = computed(() => props.post.profiles.avatar_url);
-const imageUrl = computed(() => props.post.imageUrl);
+
+// --- A CORREÇÃO ESTÁ AQUI ---
+// Mudamos de props.post.imageUrl para props.post.image_url
+const imageUrl = computed(() => props.post.image_url);
+// -----------------------------
+
 const commissionStatus = computed(() => props.post.profiles.missionstatus);
 
 const isLiked = ref(props.post.isLikedByMe);
@@ -132,8 +137,7 @@ function handleShare() {
 </script>
 
 <style scoped>
-/* O CSS (está longo, mas é o correto) */
-/* ... (Seu CSS existente fica aqui - não precisa mudar nada) ... */
+/* Estilos permanecem os mesmos */
 .post-card {
     border: 1px solid #444;
     border-radius: 8px;

@@ -1,6 +1,6 @@
 <template>
     <div class="post-card-wrapper">
-        <img :src="post.imageUrl" class="post-image" />
+        <img :src="post.image_url" class="post-image" />
 
         <div class="post-overlay">
             <div class="user-info">

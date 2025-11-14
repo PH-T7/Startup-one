@@ -81,7 +81,11 @@ const fetchProfileData = async () => {
 
     const { data: postsData, error: postsError } = await supabase
         .from("posts")
-        .select("*, profiles:user_id(id, username, avatar_url, missionstatus)")
+        // CORREÇÃO AQUI (Não é uma correção, mas uma boa prática)
+        // Adicione image_url ao select para garantir que ele venha
+        .select(
+            "*, image_url, profiles:user_id(id, username, avatar_url, missionstatus)",
+        )
         .eq("user_id", profile.value.id)
         .order("created_at", { ascending: false });
 
@@ -96,7 +100,8 @@ onMounted(fetchProfileData);
 watch(username, fetchProfileData);
 
 const portfolioPosts = computed(() => {
-    return posts.value.filter((p) => p.imageUrl);
+    // CORREÇÃO AQUI
+    return posts.value.filter((p) => p.image_url); // Mudado de imageUrl para image_url
 });
 
 const feedPosts = computed(() => {

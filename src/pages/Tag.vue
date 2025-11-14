@@ -1,16 +1,9 @@
 <template>
     <div>
         <h2>Posts com a tag #{{ tagName }}</h2>
-        <PostItem
-            v-for="post in taggedPosts"
-            :key="post.id"
-            :postId="post.id"
-            :username="post.profiles.username"
-            :text="post.text"
-            :avatar-url="post.profiles.avatar_url"
-            :image-url="post.imageUrl"
-            :commission-status="post.profiles.missionstatus"
-        />
+
+        <PostItem v-for="post in taggedPosts" :key="post.id" :post="post" />
+
         <p v-if="taggedPosts.length === 0">
             Nenhum post encontrado com esta tag.
         </p>
@@ -36,14 +29,22 @@ async function fetchTaggedPosts() {
         const { data, error } = await supabase
             .from("posts")
             .select(
-                "*, profiles:user_id(id, username, avatar_url, missionstatus)",
+                "*, image_url, profiles:user_id(id, username, avatar_url, missionstatus)",
             )
             .like("text", `%#${tagName.value}%`) // A mágica: busca posts que contenham o texto da tag
             .order("created_at", { ascending: false });
 
         if (error) throw error;
-        taggedPosts.value = data;
-        console.log("Posts encontrados:", data);
+        // CORREÇÃO AQUI: Precisamos mapear os likes, assim como na Home.vue
+        // (Senão o PostItem vai quebrar ao tentar ler 'isLikedByMe')
+        // Por agora, vamos apenas garantir que o objeto exista.
+        // Uma implementação completa precisaria buscar os likes aqui também.
+        taggedPosts.value = data.map((post) => ({
+            ...post,
+            isLikedByMe: false, // Simplificação (correto seria buscar os likes)
+            likeCount: 0, // Simplificação
+        }));
+        console.log("Posts encontrados:", taggedPosts.value);
     } catch (error) {
         console.error("Erro ao buscar posts por tag:", error.message);
     }

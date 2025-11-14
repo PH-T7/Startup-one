@@ -81,8 +81,11 @@ const updateProfile = async () => {
         if (avatarFile.value) {
             // ... (lógica de upload de avatar está correta) ...
             const fileName = `avatars/${currentUser.value.id}-${Date.now()}`;
+
+            // --- CORREÇÃO AQUI ---
+            // O bucket "avatars" não existe, vamos usar o "uploads"
             const { error: uploadError } = await supabase.storage
-                .from("avatars") // Nota: Você precisa ter um bucket 'avatars'
+                .from("uploads") // Mudado de "avatars"
                 .upload(fileName, avatarFile.value, {
                     cacheControl: "3600",
                     upsert: true,
@@ -90,8 +93,10 @@ const updateProfile = async () => {
 
             if (uploadError) throw uploadError;
 
+            // --- CORREÇÃO AQUI ---
+            // Também precisamos pegar a URL do bucket "uploads"
             const { data } = supabase.storage
-                .from("avatars")
+                .from("uploads") // Mudado de "avatars"
                 .getPublicUrl(fileName);
             avatarUrl = data.publicUrl;
         }
@@ -109,15 +114,18 @@ const updateProfile = async () => {
 
         if (updateError) throw updateError;
 
-        // FORÇAR A ATUALIZAÇÃO DA STORE (BÔNUS)
-        // Isso é importante para que o avatar mude imediatamente
-        // (Requer modificar a store.js para ter uma função 'setUser')
-        // Por agora, vamos pular isso.
+        // ... (resto do script) ...
 
         successMessage.value = "Perfil atualizado com sucesso!";
+
+        // BÔNUS: Forçar a store a recarregar os dados do usuário
+        // para que o avatar mude imediatamente em toda a aplicação.
+        // Precisamos chamar o initializeAuth de novo.
+        await store.initializeAuth();
+
         setTimeout(() => {
             router.push(`/perfil/${username.value}`);
-        }, 2000);
+        }, 2000); // O tempo é para você ler a msg de sucesso
     } catch (error) {
         errorMessage.value = `Erro ao atualizar perfil: ${error.message}`;
     } finally {

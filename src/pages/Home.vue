@@ -25,10 +25,11 @@ async function fetchPosts() {
             .select(
                 `
                 *,
+                image_url,
                 profiles:user_id(id, username, avatar_url, missionstatus),
                 likes(user_id)
                 `,
-            )
+            ) // <-- CORREÇÃO AQUI: Adicionamos 'imageUrl,'
             .order("created_at", { ascending: false });
 
         if (error) throw error;

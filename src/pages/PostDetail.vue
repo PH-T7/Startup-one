@@ -75,7 +75,9 @@ async function fetchComments() {
 onMounted(async () => {
     const { data, error } = await supabase
         .from("posts")
-        .select("*, profiles:user_id(id, username, avatar_url, missionstatus)")
+        .select(
+            "*, image_url, profiles:user_id(id, username, avatar_url, missionstatus)",
+        )
         .eq("id", postId)
         .single();
 

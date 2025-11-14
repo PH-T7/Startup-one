@@ -110,7 +110,8 @@ async function handlePost() {
                 {
                     user_id: currentUser.value.id,
                     text: newPostText.value,
-                    imageUrl: uploadedImageUrl, // Coluna correta
+                    // CORREÇÃO AQUI
+                    image_url: uploadedImageUrl, // Mudado de imageUrl para image_url
                 },
             ])
             .select(); // <-- Importante: Pega o post que acabou de ser criado
