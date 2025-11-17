@@ -1,74 +1,104 @@
-# Nexo Art (Projeto Startup One)
+# Nexo Art (Startup One Project)
 
-"Onde as cores contam a história que as palavras não alcançam."
+*"Where colors tell the stories words cannot reach."*
 
-Nexo Art é um protótipo funcional de uma plataforma de rede social focada em artistas digitais, ilustradores e criadores de mangá.
+Nexo Art is a functional prototype of a social network platform focused on digital artists, illustrators, and manga creators.
 
+---
 
+## About the Project
 
-## 🚀 Sobre o Projeto
+This project is being developed as an evaluation for the **Applied Project: Startup One** course in the Systems Analysis and Development program at Facens.
 
-Este projeto está sendo desenvolvido como avaliação para a disciplina de **Projeto Aplicado: Startup One** do curso de Análise e Desenvolvimento de Sistemas da Facens.
+The goal is to create a platform that values artists, combining the interactivity and sense of community of a social feed (like X/Twitter) with the curated visual experience of a professional portfolio (such as Pinterest, Tumblr, or Pixiv).
 
-O objetivo é criar uma plataforma que valorize o artista, combinando a interatividade e senso de comunidade de um feed social (como X/Twitter) com a curadoria visual de um portfólio profissional (como Pinterest,Tumblr ou pixiv).
+The platform aims to solve a core issue artists face on generic social networks: the difficulty of displaying their work in an organized way and finding commission opportunities.
 
-A plataforma é projetada para resolver um problema central dos artistas em redes sociais genéricas: a dificuldade de expor seus trabalhos de forma organizada e encontrar oportunidades de trabalho (comissões).
+---
 
-## ✨ Recursos Implementados
+## Implemented Features
 
-* **Feed Real-time:** O feed principal carrega os posts diretamente do banco de dados (Supabase).
-* **Criação de Posts:** Os usuários podem postar texto e fazer **upload de imagens** (via Supabase Storage).
-* **Navegação Completa (Vue Router):** Aplicação de página única (SPA) com rotas para Home, Login, Perfil de Usuário e Detalhe do Post.
-* **Perfis de Artista Dinâmicos:** A página de perfil (ex: `/perfil/ArtistaManga`) carrega os dados do artista e exibe suas abas de **"Portfólio"** (em grid) e **"Feed"** (em lista).
-* **Foco no Artista:** Recursos únicos como o "Status de Comissão" visível no perfil e no feed, além de uma seção de "Artista em Destaque".
-* **Backend Conectado:** O projeto está 100% migrado e funcional com o Supabase, seguindo as diretrizes de backend-as-a-service (BaaS) da disciplina.
+- **Real-time Feed:** The main feed loads posts directly from the Supabase database.
+- **Post Creation:** Users can publish text posts and **upload images** via Supabase Storage.
+- **Full Navigation (Vue Router):** Single Page Application (SPA) with routes for Home, Login, User Profile, and Post Details.
+- **Dynamic Artist Profiles:** Profile pages (e.g., `/perfil/MangaArtist`) load artist data and display **Portfolio** (grid) and **Feed** (list) tabs.
+- **Artist-Centered Design:** Unique features such as “Commission Status” shown in profiles and in the feed, plus a “Featured Artist” section.
+- **Connected Backend:** Fully functional and integrated with Supabase following backend-as-a-service (BaaS) guidelines from the course.
 
-## 🛠️ Stack Tecnológico
+---
 
-* **Frontend:** Vue.js 3 (com Vite)
-* **Roteamento:** Vue Router
-* **Backend (BaaS):** Supabase
-* **Banco de Dados:** Supabase (PostgreSQL)
-* **Autenticação:** Supabase Auth (Email/Senha, Google OAuth)
-* **Armazenamento de Arquivos:** Supabase Storage
+## Tech Stack
 
-## 🚀 Como Executar o Projeto Localmente
+- **Frontend:** Vue.js 3 (with Vite)
+- **Routing:** Vue Router
+- **Backend (BaaS):** Supabase
+- **Database:** Supabase
+- **Authentication:** Supabase Auth (Email/Password, Google OAuth)
+- **File Storage:** Supabase Storage
 
-1. **Clone o repositório:**
-    ```bash
-    git clone [https://github.com/PH-77/Startup-one.git](https://github.com/PH-77/Startup-one.git)
-    ```
+---
 
-2. **Entre na pasta:**
-    ```bash
-    cd Startup-one
-    ```
+## How to Run the Project Locally
 
-3. **Instale as dependências:**
-    ```bash
-    npm install
-    ```
+### 1. Clone the repository
+```bash
+git clone https://github.com/PH-77/Startup-one.git
+```
+### 2. Enter the project folder
+```bash
+cd Startup-one
+```
+### 3. Install dependencies
+```bash
+npm install
+```
 
-4. **Configure suas Chaves (Backend):**
-    * Crie uma conta gratuita no [Supabase](https://supabase.com/).
-    * Crie um novo projeto (ex: "nexo-art").
-    * Na raiz do seu projeto local, crie um arquivo chamado `.env`
-    * Adicione suas chaves do Supabase (encontradas em Configurações > API) ao `.env`:
-        ```
-        VITE_SUPABASE_URL="SUA_URL_DO_PROJETO"
-        VITE_SUPABASE_KEY="SUA_CHAVE_ANON_PUBLIC"
-        ```
+### 4. Configure Backend Keys
+```bash
+VITE_SUPABASE_URL="YOUR_PROJECT_URL"
+VITE_SUPABASE_KEY="YOUR_ANON_PUBLIC_KEY"
+```
 
-5. **Configure o Banco de Dados (Supabase):**
-    * No painel do Supabase, vá em **Table Editor** e crie a tabela `posts`.
-    * Adicione as colunas: `user` (text), `text` (text), `avatarUrl` (text), `imageUrl` (text), `missionStatus` (text) e `created_at` (timestamptz com `now()` como Default Value).
-    * Vá em **Storage** e crie um "Bucket" público chamado `uploads`.
-    * Vá em **Authentication** > **Policies** e desative o **Row Level Security (RLS)** da tabela `posts` para testes de desenvolvimento (ou crie políticas `SELECT` e `INSERT` com `true`).
+---
 
-6. **Rode o servidor de desenvolvimento:**
-    ```bash
-    npm run dev
-    ```
+# Database Setup (Supabase)
+##  Create the Database Structure
 
-7. **Abra no navegador:**
-    [http://localhost:5173](http://localhost:5173)
+#### In the Supabase dashboard:
+
+#### Go to Table Editor and create a table named posts.
+
+Add the following columns:
+
+user — text
+
+text — text
+
+avatarUrl — text
+
+imageUrl — text
+
+missionStatus — text
+
+created_at — timestamptz (default: now())
+
+#### Go to Storage → create a public bucket named uploads.
+
+#### Go to Authentication → Policies
+
+Disable Row Level Security (RLS)
+or Create SELECT and INSERT policies with the condition: true
+
+### Run the Development Server
+```bash
+npm run dev
+```
+### Open the project in your browser 
+```bash
+http://localhost:5173
+```
+---
+
+### License 
+This project is for academic and educational purposes as part of the Startup One discipline at Facens.
+
