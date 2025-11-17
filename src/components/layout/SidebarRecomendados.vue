@@ -15,15 +15,15 @@
                     <div class="artist-info">
                         <strong>{{ featuredArtist.username }}</strong>
                         <span
-                            v-if="featuredArtist.commission_status"
+                            v-if="featuredArtist.missionstatus"
                             :class="[
                                 'artist-status',
-                                featuredArtist.commission_status
+                                featuredArtist.missionstatus
                                     .toLowerCase()
                                     .replace(' ', '-'),
                             ]"
                         >
-                            {{ featuredArtist.commission_status }}
+                            {{ featuredArtist.missionstatus }}
                         </span>
                     </div>
                 </div>
@@ -32,33 +32,19 @@
 
         <section class="post-grid">
             <h3>Posts de quem você segue</h3>
-            <div class="grid-container">
-                <!-- This part is still static, can be made dynamic later -->
-                <div class="grid-item">
-                    <img
-                        src="https://pbs.twimg.com/media/GK_s8A8WAAA-NfY?format=jpg&name=medium"
-                        alt="Post"
-                    />
-                </div>
-                <div class="grid-item">
-                    <img
-                        src="https://pbs.twimg.com/media/GFu8m0tXEAAkqaR?format=jpg&name=medium"
-                        alt="Post"
-                    />
-                </div>
-                <div class="grid-item">
-                    <img
-                        src="https://pbs.twimg.com/media/GI-S-qiaEAABhB0?format=jpg&name=medium"
-                        alt="Post"
-                    />
-                </div>
-                <div class="grid-item">
-                    <img
-                        src="https://pbs.twimg.com/media/GIl89m0WQAAdJcg?format=jpg&name=medium"
-                        alt="Post"
-                    />
-                </div>
+            <div class="grid-container" v-if="followingPosts.length > 0">
+                <router-link
+                    v-for="post in followingPosts"
+                    :key="post.id"
+                    :to="`/post/${post.id}`"
+                    class="grid-item"
+                >
+                    <img :src="post.image_url" alt="Post" />
+                </router-link>
             </div>
+            <p v-else class="no-posts-message">
+                Você ainda não segue ninguém ou quem você segue não postou nada.
+            </p>
         </section>
     </aside>
 </template>
@@ -66,17 +52,21 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { supabase } from "../../lib/supabaseClient";
-import store from "@/lib/store.js"; // Import CORRETO
+import store from "@/lib/store.js";
 
 const featuredArtist = ref(null);
+const followingPosts = ref([]); // <-- Nosso novo array
 
-onMounted(async () => {
-    // Fetch a user that is not the current user, and who has an avatar
+// --- FUNÇÃO PARA BUSCAR ARTISTA EM DESTAQUE (JÁ EXISTIA) ---
+async function fetchFeaturedArtist() {
+    // --- MUDANÇA AQUI ---
+    // A query agora filtra por artistas com comissões abertas
     let query = supabase
         .from("profiles")
         .select("*")
-        .not("avatar_url", "is", null) // Ensure the user has an avatar
-        .limit(10); // Fetch a few to have a choice
+        .eq("missionstatus", "Aberto para comissões") // NOVO FILTRO ESTRATÉGICO
+        .not("avatar_url", "is", null) // Garante que o artista tenha avatar
+        .limit(10); // Pega até 10 artistas que batem com o filtro
 
     const { data, error } = await query;
 
@@ -84,22 +74,61 @@ onMounted(async () => {
         console.error("Error fetching featured artist:", error);
     } else if (data) {
         let artists = data;
-
-        // --- CORREÇÃO AQUI ---
-        // Verifica se o usuário está logado usando o store
         if (store.state.currentUser) {
             artists = artists.filter(
-                // E filtra o ID do usuário logado usando o store
                 (artist) => artist.id !== store.state.currentUser.id,
             );
         }
-
-        // Pick a random artist from the filtered list
         if (artists.length > 0) {
+            // A lógica de "aleatório" agora só se aplica
+            // DENTRE os artistas que têm comissões abertas
             const randomIndex = Math.floor(Math.random() * artists.length);
             featuredArtist.value = artists[randomIndex];
         }
     }
+}
+
+// --- NOVA FUNÇÃO PARA BUSCAR POSTS DE QUEM SEGUIMOS ---
+async function fetchFollowingPosts() {
+    if (!store.state.currentUser) return;
+
+    try {
+        // 1. Pega a lista de IDs de quem seguimos
+        const { data: followingList, error: followError } = await supabase
+            .from("followers")
+            .select("following_id") // Pega só a coluna de quem seguimos
+            .eq("follower_id", store.state.currentUser.id); // Onde o seguidor somos nós
+
+        if (followError) throw followError;
+
+        // 2. Extrai apenas os IDs para uma lista simples: ['id1', 'id2', ...]
+        const followingIds = followingList.map((item) => item.following_id);
+
+        if (followingIds.length === 0) {
+            return; // Não seguimos ninguém, paramos por aqui
+        }
+
+        // 3. Busca posts onde o 'user_id' esteja DENTRO da nossa lista de IDs
+        const { data: posts, error: postError } = await supabase
+            .from("posts")
+            .select("id, image_url") // Pega só o ID e a imagem
+            .in("user_id", followingIds) // O 'user_id' precisa ser um dos que seguimos
+            .not("image_url", "is", null) // Garante que o post tenha imagem
+            .order("created_at", { ascending: false })
+            .limit(4); // Limita a 4 posts (igual ao seu layout)
+
+        if (postError) throw postError;
+
+        followingPosts.value = posts;
+    } catch (error) {
+        console.error("Erro ao buscar posts de quem segue:", error.message);
+    }
+}
+
+onMounted(async () => {
+    // Roda as duas funções quando o componente carregar
+    await fetchFeaturedArtist();
+    await fetchFollowingPosts();
 });
 </script>
 
@@ -186,5 +215,10 @@ h3 {
 .artist-status.lista-de-espera {
     background-color: #fca311;
     color: white;
+}
+.no-posts-message {
+    color: #888;
+    font-size: 0.9em;
+    padding-top: 10px;
 }
 </style>

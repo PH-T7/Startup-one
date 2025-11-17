@@ -4,9 +4,16 @@
         <div class="header-info">
             <div class="info-top-row">
                 <h1 class="username">{{ username }}</h1>
-                <button v-if="!isMyProfile" class="follow-button">
-                    Seguir
+
+                <button
+                    v-if="!isMyProfile"
+                    class="follow-button"
+                    @click="handleFollow"
+                    :disabled="isLoadingFollow"
+                >
+                    {{ isFollowing ? "Seguindo" : "Seguir" }}
                 </button>
+
                 <button
                     v-if="isMyProfile"
                     class="edit-profile-button"
@@ -32,17 +39,81 @@
 
 <script setup>
 import { useRouter } from "vue-router";
+// Importações para a lógica de "seguir"
+import { ref, onMounted, computed, watch } from "vue";
+import store from "@/lib/store.js";
+import { supabase } from "@/lib/supabaseClient.js";
 
-defineProps({
+const props = defineProps({
     username: String,
     avatar: String,
     bio: String,
     commissionStatus: String,
     isMyProfile: Boolean,
+    profileId: String, // Prop necessária para a lógica de seguir
 });
 
 const router = useRouter();
+const currentUser = computed(() => store.state.currentUser);
 
+// --- Lógica para seguir ---
+const isFollowing = ref(false);
+const isLoadingFollow = ref(false);
+
+async function checkIfFollowing() {
+    if (!props.profileId || !currentUser.value) return;
+
+    isLoadingFollow.value = true;
+    try {
+        const { data, error } = await supabase
+            .from("followers")
+            .select()
+            .eq("follower_id", currentUser.value.id)
+            .eq("following_id", props.profileId)
+            .single();
+
+        if (error && error.code !== "PGRST116") {
+            throw error;
+        }
+        isFollowing.value = !!data;
+    } catch (error) {
+        console.error("Erro ao checar se segue:", error.message);
+    } finally {
+        isLoadingFollow.value = false;
+    }
+}
+
+async function handleFollow() {
+    isLoadingFollow.value = true;
+    try {
+        if (isFollowing.value) {
+            // Deixar de Seguir
+            const { error } = await supabase.from("followers").delete().match({
+                follower_id: currentUser.value.id,
+                following_id: props.profileId,
+            });
+            if (error) throw error;
+            isFollowing.value = false;
+        } else {
+            // Seguir
+            const { error } = await supabase.from("followers").insert({
+                follower_id: currentUser.value.id,
+                following_id: props.profileId,
+            });
+            if (error) throw error;
+            isFollowing.value = true;
+        }
+    } catch (error) {
+        console.error("Erro ao seguir/deixar de seguir:", error.message);
+    } finally {
+        isLoadingFollow.value = false;
+    }
+}
+
+onMounted(checkIfFollowing);
+watch(() => props.profileId, checkIfFollowing);
+
+// --- Lógica de Editar Perfil ---
 const goToEditProfile = () => {
     router.push("/edit-profile");
 };

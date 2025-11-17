@@ -4,8 +4,9 @@
 
         <div class="post-overlay">
             <div class="user-info">
-                <img :src="post.avatarUrl" class="avatar-overlay" />
-                <span>{{ post.user }}</span>
+                <img :src="post.profiles.avatar_url" class="avatar-overlay" />
+
+                <span>{{ post.profiles.username }}</span>
             </div>
         </div>
     </div>

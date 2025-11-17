@@ -11,49 +11,55 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue"; // 1. Importe onMounted e watch
+import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import PostItem from "../components/post/PostItem.vue";
-import { supabase } from "../lib/supabaseClient"; // 2. Importe o Supabase
+import { supabase } from "../lib/supabaseClient";
+import store from "@/lib/store.js"; // 1. IMPORTAR O STORE
 
 const route = useRoute();
 const tagName = computed(() => route.params.tagName);
-const taggedPosts = ref([]); // 3. Começa vazio, sem dados falsos
+const taggedPosts = ref([]);
+const currentUser = computed(() => store.state.currentUser); // 2. PEGAR O USUÁRIO LOGADO
 
-// 4. Nova função para buscar os posts reais
 async function fetchTaggedPosts() {
+    if (!currentUser.value) return; // Garante que temos um usuário antes de buscar
+
     console.log(`Buscando posts com a tag: #${tagName.value}`);
-    taggedPosts.value = []; // Limpa antes de buscar
+    taggedPosts.value = [];
 
     try {
         const { data, error } = await supabase
             .from("posts")
             .select(
-                "*, image_url, profiles:user_id(id, username, avatar_url, missionstatus)",
-            )
-            .like("text", `%#${tagName.value}%`) // A mágica: busca posts que contenham o texto da tag
+                `
+                *,
+                image_url,
+                profiles:user_id(id, username, avatar_url, missionstatus),
+                likes(user_id)
+                `,
+            ) // 3. PEDIR OS LIKES NA QUERY
+            .like("text", `%#${tagName.value}%`)
             .order("created_at", { ascending: false });
 
         if (error) throw error;
-        // CORREÇÃO AQUI: Precisamos mapear os likes, assim como na Home.vue
-        // (Senão o PostItem vai quebrar ao tentar ler 'isLikedByMe')
-        // Por agora, vamos apenas garantir que o objeto exista.
-        // Uma implementação completa precisaria buscar os likes aqui também.
+
+        // 4. MAPEAMENTO CORRETO DOS LIKES (igual o da Home.vue)
         taggedPosts.value = data.map((post) => ({
             ...post,
-            isLikedByMe: false, // Simplificação (correto seria buscar os likes)
-            likeCount: 0, // Simplificação
+            isLikedByMe: post.likes.some(
+                (like) => like.user_id === currentUser.value.id,
+            ),
+            likeCount: post.likes.length,
         }));
+
         console.log("Posts encontrados:", taggedPosts.value);
     } catch (error) {
         console.error("Erro ao buscar posts por tag:", error.message);
     }
 }
 
-// 5. Busca os posts quando a página carregar
 onMounted(fetchTaggedPosts);
-
-// 6. (Bônus) Busca novamente se o usuário clicar em outra tag
 watch(tagName, fetchTaggedPosts);
 </script>
 

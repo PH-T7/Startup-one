@@ -25,7 +25,9 @@
         </div>
 
         <div class="actions-row">
-            <button class="icon-button" @click="triggerFileInput">📷</button>
+            <button class="icon-button" @click="triggerFileInput">
+                <img src="@/assets/paperclip.svg" class="btn-icon" />
+            </button>
 
             <input
                 type="file"

@@ -140,44 +140,93 @@ const updateProfile = async () => {
     margin: 0 auto;
     padding: 20px;
 }
+
 .profile-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px; /* Aumenta o espaço entre os campos */
+    background-color: #222; /* Adiciona um fundo ao form */
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid #444;
 }
+
 .form-group {
     display: flex;
     flex-direction: column;
 }
+
 label {
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-weight: 600;
+    color: #ccc;
 }
-input,
+
+/* Estilo para os inputs (igual ao seu app) */
+input[type="text"],
 textarea,
 select {
-    padding: 10px;
-    border-radius: 5px;
+    padding: 12px;
+    border-radius: 8px;
     border: 1px solid #444;
-    background-color: #222;
+    background-color: #333;
     color: white;
+    font-size: 1em;
+    font-family: Arial, sans-serif;
 }
-button {
-    padding: 10px 15px;
+
+input[type="text"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #42b883; /* Verde (pode mudar) */
+    box-shadow: 0 0 0 3px rgba(66, 184, 131, 0.2);
+}
+
+/* Estilo para o input de arquivo */
+input[type="file"] {
+    background-color: #333;
+    padding: 10px;
+}
+input[type="file"]::file-selector-button {
+    background-color: #555;
+    color: white;
     border: none;
-    border-radius: 5px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+input[type="file"]::file-selector-button:hover {
+    background-color: #666;
+}
+
+/* Estilo para o botão (igual ao de postar) */
+button {
+    padding: 12px 15px;
+    border: none;
+    border-radius: 20px;
     background-color: #42b883;
     color: white;
     cursor: pointer;
     font-weight: 600;
+    font-size: 1em;
+    transition: background-color 0.2s;
 }
+
+button:hover {
+    background-color: #3aa073;
+}
+
 button:disabled {
     background-color: #888;
     cursor: not-allowed;
 }
+
 .error-message {
     color: #ff5555;
 }
+
 .success-message {
     color: #42b883;
 }

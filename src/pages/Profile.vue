@@ -7,6 +7,7 @@
             :bio="profile.bio"
             :commission-status="profile.missionstatus"
             :is-my-profile="isMyProfile"
+            :profile-id="profile.id"
         />
 
         <div class="profile-tabs">

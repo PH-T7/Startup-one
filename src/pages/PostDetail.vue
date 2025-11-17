@@ -40,70 +40,83 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue"; // <-- Importe 'computed'
+import { ref, onMounted, computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import PostItem from "../components/post/PostItem.vue";
-import { supabase } from "../lib/supabaseClient"; // <-- Importe supabase
-import store from "@/lib/store.js"; // <-- Importe a store
+import { supabase } from "../lib/supabaseClient";
+import store from "@/lib/store.js";
 
 const route = useRoute();
 const post = ref(null);
-const postId = route.params.id;
-
-// -- NOVOS REFS PARA COMENTÁRIOS --
 const comments = ref([]);
 const newComment = ref("");
 const currentUser = computed(() => store.state.currentUser);
 
-// -- NOVA FUNÇÃO PARA BUSCAR COMENTÁRIOS --
-async function fetchComments() {
+async function fetchData() {
+    const postId = route.params.id;
+    if (!postId || !currentUser.value) return; // Garante que temos o usuário também
+
+    post.value = null;
+    comments.value = [];
+
     try {
-        const { data, error } = await supabase
+        // Busca o Post
+        const { data: postData, error: postError } = await supabase
+            .from("posts")
+            .select(
+                `
+                *,
+                image_url,
+                profiles:user_id(id, username, avatar_url, missionstatus),
+                likes(user_id)
+                `,
+            ) // <-- MUDANÇA 1: Pedimos os 'likes' aqui
+            .eq("id", postId)
+            .single();
+
+        if (postError) throw postError;
+
+        // MUDANÇA 2: Calculamos os likes, igual na Home.vue
+        // Em vez de: post.value = postData;
+        post.value = {
+            ...postData,
+            isLikedByMe: postData.likes.some(
+                (like) => like.user_id === currentUser.value.id,
+            ),
+            likeCount: postData.likes.length,
+        };
+
+        // Busca os Comentários (continua igual)
+        const { data: commentsData, error: commentsError } = await supabase
             .from("comments")
-            .select("*, profiles(id, username, avatar_url)") // Pega o perfil do comentarista
+            .select("*, profiles(id, username, avatar_url)")
             .eq("post_id", postId)
             .order("created_at", { ascending: true });
 
-        if (error) throw error;
-        comments.value = data;
+        if (commentsError) throw commentsError;
+        comments.value = commentsData;
     } catch (error) {
-        console.error("Error fetching comments:", error.message);
+        console.error("Erro ao buscar dados do post:", error.message);
     }
 }
 
-// -- onMounted ATUALIZADO --
-onMounted(async () => {
-    const { data, error } = await supabase
-        .from("posts")
-        .select(
-            "*, image_url, profiles:user_id(id, username, avatar_url, missionstatus)",
-        )
-        .eq("id", postId)
-        .single();
+onMounted(fetchData);
+watch(() => route.params.id, fetchData);
 
-    if (error) {
-        console.error("Error fetching post:", error);
-    } else {
-        post.value = data;
-        await fetchComments(); // <-- Busca os comentários DEPOIS de achar o post
-    }
-});
-
-// -- FUNÇÃO DE ENVIAR ATUALIZADA --
 async function handleSendComment() {
     if (!newComment.value.trim() || !currentUser.value) return;
 
     try {
         const { error } = await supabase.from("comments").insert({
-            post_id: postId,
+            post_id: route.params.id,
             user_id: currentUser.value.id,
             content: newComment.value,
         });
 
         if (error) throw error;
 
-        newComment.value = ""; // Limpa o input
-        await fetchComments(); // Recarrega os comentários
+        newComment.value = "";
+        await fetchData(); // Recarrega tudo (incluindo o post e os comentários)
     } catch (error) {
         console.error("Error sending comment:", error.message);
         alert("Erro ao enviar comentário: " + error.message);

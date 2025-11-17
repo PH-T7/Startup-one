@@ -1,18 +1,5 @@
 <template>
     <aside class="sidebar-menu">
-        <div v-if="user" class="my-profile-box">
-            <router-link :to="`/perfil/${user.username}`" class="profile-link">
-                <Avatar :src="user.avatar_url" class="profile-avatar" />
-
-                <div class="profile-info">
-                    <strong>{{ user.username }}</strong>
-                    <router-link to="/edit-profile" class="edit-link">
-                        Editar Perfil
-                    </router-link>
-                </div>
-            </router-link>
-        </div>
-
         <nav class="tags-nav">
             <h3>Tags em alta</h3>
             <ul>
