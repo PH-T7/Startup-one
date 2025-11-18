@@ -6,6 +6,12 @@ Nexo Art is a full-stack functional prototype of a social network platform focus
 
 ---
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/5189f9a0-66c6-465b-ad3d-a7beca12dedb" alt="Screenshot of nexoart" style="width: 80%;">
+</p>
+
+---
+
 ## About the Project
 
 This project is being developed as an evaluation for the **Applied Project: Startup One** course in the Systems Analysis and Development program at Facens.
